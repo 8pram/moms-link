@@ -378,26 +378,81 @@ function renderForm() {
             <form onsubmit="submitForm(event)">
                 <!-- SECTION RSUD (1-4) -->
                 <div class="${lockRsudFields ? 'readonly-section' : ''}">
+                    <!-- TAHAP 1 -->
                     <div class="form-card">
-                        <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">📋 1. Identitas & Kontrol RSUD</div>
+                        <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">📋 1. Identitas Pasien & Register (RSUD)</div>
                         <div class="card-body">
-                            ${createInput('No. Urut / RM', 'no', 'text', f.no, null, lockRsudFields || f.no !== '')}
-                            ${createInput('Nama Pasien Bayi', 'nama_pasien', 'text', f.nama_pasien, null, lockRsudFields)}
+                            ${createInput('No. Urut / RM', 'no', 'text', f.no, null, lockRsudFields || f.no !== '', 'Nomor urut...')}
+                            ${createInput('Nama Pasien Bayi', 'nama_pasien', 'text', f.nama_pasien, null, lockRsudFields, 'Nama lengkap...')}
                             ${createInput('Tanggal Lahir', 'tgl_lahir', 'date', f.tgl_lahir, null, lockRsudFields)}
-                            ${createInput('No. Register', 'no_register', 'text', f.no_register, null, lockRsudFields)}
-                            ${createInput('Tgl Kunjungan RS', 'tgl_kunjungan_rs', 'date', f.tgl_kunjungan_rs, null, lockRsudFields)}
-                            ${createInput('Umur Bayi', 'umur_bayi', 'text', f.umur_bayi, null, lockRsudFields)}
+                            ${createInput('No. Register', 'no_register', 'text', f.no_register, null, lockRsudFields, 'Nomor Register...')}
+                            ${createInput('Jenis Kelamin', 'jenis_kelamin', 'text', f.jenis_kelamin, ['Perempuan (P)', 'Laki-laki (L)'], lockRsudFields)}
+                            ${createInput('Umur Bayi', 'umur_bayi', 'text', f.umur_bayi, null, lockRsudFields, 'Dalam hari/bulan...')}
+                            ${createInput('Tanggal Kunjungan ke RS', 'tgl_kunjungan_rs', 'date', f.tgl_kunjungan_rs, null, lockRsudFields)}
+                            ${createInput('Kelainan Kongenital', 'kelainan_kongenital', 'text', f.kelainan_kongenital, null, lockRsudFields, 'Ada/Tidak, sebutkan...')}
                         </div>
                     </div>
 
+                    <!-- TAHAP 2 -->
                     <div class="form-card">
-                        <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">🏥 2. Klinis & Keluar RSUD</div>
+                        <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">👶 2. Riwayat Kehamilan & Persalinan</div>
                         <div class="card-body">
-                            ${createInput('Diagnosa Awal', 'diagnosa_awal', 'text', f.diagnosa_awal, null, lockRsudFields)}
-                            ${createInput('Diagnosa Akhir', 'diagnosa_akhir', 'text', f.diagnosa_akhir, null, lockRsudFields)}
-                            ${createInput('Kondisi KRS', 'kondisi_krs', 'text', f.kondisi_krs, ['HIDUP (<1000g)', 'HIDUP (>1000-1500g)', 'HIDUP (>1500-2000g)', 'HIDUP (>2000-2500g)', 'HIDUP (>2500g)', 'MATI'], lockRsudFields)}
+                            ${createInput('Umur Kehamilan (Minggu)', 'umur_kehamilan', 'text', f.umur_kehamilan, ['< 28', '28 - <32', '32 - <34', '34 - <37', '> 37'], lockRsudFields)}
+                            ${createInput('Berat Badan Lahir (Gram)', 'bb_lahir', 'text', f.bb_lahir, ['< 1000', '>1000 - 1500', '>1500 - 2000', '>2000 - 2500', '> 2500'], lockRsudFields)}
+                            ${createInput('Hamil Ke-', 'hamil_ke', 'number', f.hamil_ke, null, lockRsudFields, '1, 2, 3...')}
+                            ${createInput('Jenis Kehamilan', 'jenis_kehamilan', 'text', f.jenis_kehamilan, ['Tunggal', 'Ganda'], lockRsudFields)}
+                            ${createInput('Cara Lahir', 'cara_lahir', 'text', f.cara_lahir, ['SPT', 'VACUM', 'FORCEP', 'SC', 'LAIN-LAIN'], lockRsudFields)}
+                            ${createInput('Indikasi Ibu', 'indikasi_ibu', 'text', f.indikasi_ibu, null, lockRsudFields, 'Indikasi...')}
+                            ${createInput('Apgar Score', 'apgar_score', 'text', f.apgar_score, null, lockRsudFields, 'Contoh: 8/9')}
+                            ${createInput('Mendapat Resusitasi', 'mendapat_resusitasi', 'text', f.mendapat_resusitasi, ['YA', 'TIDAK'], lockRsudFields)}
+                        </div>
+                    </div>
+
+                    <!-- TAHAP 3 -->
+                    <div class="form-card">
+                        <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">🚑 3. Data & Terapi Pra-Rujukan</div>
+                        <div class="card-body">
+                            ${createInput('Status Rujukan Dari', 'status_rujukan', 'text', f.status_rujukan, ['PKM', 'BPM', 'RS', 'KLINIK', 'DTS', 'LAINNYA'], lockRsudFields)}
+                            ${createInput('Diagnosa Rujukan', 'diagnosa_rujukan', 'text', f.diagnosa_rujukan, null, lockRsudFields, 'Diagnosa...')}
+                            
+                            <div class="form-group col-span-full">
+                                <label class="form-label">Terapi Pra Rujukan Diberikan:</label>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    ${createCheckbox('Infus', 'terapi_infus', f.terapi_infus, lockRsudFields)}
+                                    ${createCheckbox('Antibiotik', 'terapi_antibiotik', f.terapi_antibiotik, lockRsudFields)}
+                                    ${createCheckbox('Obat Kejang', 'terapi_obat_kejang', f.terapi_obat_kejang, lockRsudFields)}
+                                </div>
+                            </div>
+                            ${createInput('Obat Lainnya', 'terapi_lain', 'text', f.terapi_lain, null, lockRsudFields, 'Obat Lain...')}
+                        </div>
+                    </div>
+
+                    <!-- TAHAP 4 -->
+                    <div class="form-card">
+                        <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">🏥 4. Intervensi & Keluar RSUD</div>
+                        <div class="card-body">
+                            ${createInput('Diagnosa Awal (RSUD)', 'diagnosa_awal', 'text', f.diagnosa_awal, null, lockRsudFields)}
+                            ${createInput('Diagnosa Akhir (Ruang Rawat)', 'diagnosa_akhir', 'text', f.diagnosa_akhir, null, lockRsudFields)}
+                            
+                            <div class="form-group col-span-full">
+                                <label class="form-label">Terpasang Alat:</label>
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                    ${createCheckbox('T-Peace', 'alat_tpeace', f.alat_tpeace, lockRsudFields)}
+                                    ${createCheckbox('O2 Nasal', 'alat_o2nasal', f.alat_o2nasal, lockRsudFields)}
+                                    ${createCheckbox('CPAP/NIV', 'alat_cpap', f.alat_cpap, lockRsudFields)}
+                                    ${createCheckbox('Venti', 'alat_venti', f.alat_venti, lockRsudFields)}
+                                </div>
+                            </div>
+                            
+                            ${createInput('Minum', 'minum', 'text', f.minum, ['ASI', 'SUFOR'], lockRsudFields)}
+                            ${createInput('Imunisasi', 'imunisasi', 'text', f.imunisasi, ['HB 0', 'HIPERHEP'], lockRsudFields)}
+                            ${createInput('Cairan Parenteral', 'cairan_parenteral', 'text', f.cairan_parenteral, ['TPN', 'TRANFUSI'], lockRsudFields)}
+                            ${createInput('PMK (Metode Kanguru)', 'pmk', 'text', f.pmk, ['YA', 'TIDAK'], lockRsudFields)}
+                            
+                            ${createInput('Kondisi Bayi KRS (Keluar RS)', 'kondisi_krs', 'text', f.kondisi_krs, ['HIDUP (<1000g)', 'HIDUP (>1000-1500g)', 'HIDUP (>1500-2000g)', 'HIDUP (>2000-2500g)', 'HIDUP (>2500g)', 'MENINGGAL (<1000g)', 'MENINGGAL (>1000-1500g)', 'MENINGGAL (>1500-2000g)', 'MENINGGAL (>2000-2500g)'], lockRsudFields)}
+
                             <div class="col-span-full border-top">
-                                <label class="form-label mb-2 block">📷 Dokumentasi RSUD</label>
+                                <label class="form-label mb-2 block">📷 Dokumentasi RSUD (Opsional)</label>
                                 <div class="upload-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
                                     ${createUploadBox('foto_rs_1', lockRsudFields)}
                                     ${createUploadBox('foto_rs_2', lockRsudFields)}
@@ -410,17 +465,25 @@ function renderForm() {
                 <!-- SECTION BIDAN (5) -->
                 <div class="${lockBidanFields ? 'readonly-section' : 'highlight-section form-card'}">
                     <div class="form-card" style="margin-bottom:0; box-shadow:none; border:none;">
-                        <div class="card-header ${lockBidanFields ? 'theme-gray' : 'theme-pink'}">🌸 3. Pemantauan Bidan</div>
+                        <div class="card-header ${lockBidanFields ? 'theme-gray' : 'theme-pink'}">🌸 Tahap 5: Pemantauan Bidan</div>
                         <div class="card-body">
                             ${createInput('Tanggal Kunjungan Bidan', 'tgl_kunjungan_bidan', 'date', f.tgl_kunjungan_bidan, null, lockBidanFields)}
                             ${createInput('Berat Badan (Gram)', 'bb_kunjungan', 'number', f.bb_kunjungan, null, lockBidanFields, 'Gram...')}
                             ${createInput('Panjang Badan (Cm)', 'pb_kunjungan', 'number', f.pb_kunjungan, null, lockBidanFields, 'Cm...')}
                             ${createInput('Keadaan Umum', 'keadaan_umum', 'text', f.keadaan_umum, null, lockBidanFields)}
+                            ${createInput('Suhu (°C)', 'suhu', 'number', f.suhu, null, lockBidanFields, '°C...')}
+                            ${createInput('Nadi (x/mnt)', 'nadi', 'number', f.nadi, null, lockBidanFields)}
+                            ${createInput('Pernafasan (x/mnt)', 'pernafasan', 'number', f.pernafasan, null, lockBidanFields)}
+                            ${createInput('Kemampuan Bayi Menyusu', 'kemampuan_menyusu', 'text', f.kemampuan_menyusu, ['KUAT', 'LEMAH', 'TIDAK MAU'], lockBidanFields)}
+                            ${createInput('Kemampuan Ibu Menyusui', 'kemampuan_ibu_menyusui', 'text', f.kemampuan_ibu_menyusui, ['BAIK', 'KURANG'], lockBidanFields)}
+                            ${createInput('Pelaksanaan Metode Kanguru', 'pelaksanaan_pmk', 'text', f.pelaksanaan_pmk, ['YA', 'TIDAK'], lockBidanFields)}
+                            ${createInput('Tanda Kegawatan Bayi', 'tanda_kegawatan', 'text', f.tanda_kegawatan, null, lockBidanFields)}
+                            ${createInput('Tindakan Kegawatan', 'tindakan_kegawatan', 'text', f.tindakan_kegawatan, null, lockBidanFields)}
                             ${createInput('Hasil Pemantauan', 'hasil', 'text', f.hasil, ['MEMBAIK', 'RUJUK KEMBALI', 'MENINGGAL'], lockBidanFields)}
                             ${createInput('Jadwal Kontrol Selanjutnya', 'kontrol', 'text', f.kontrol, ['YA (Perlu)', 'TIDAK (Selesai)'], lockBidanFields)}
                             
                             <div class="col-span-full border-top">
-                                <label class="form-label mb-2 block">📷 Dokumentasi Bidan</label>
+                                <label class="form-label mb-2 block">📷 Dokumentasi Bidan (Opsional)</label>
                                 <div class="upload-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
                                     ${createUploadBox('foto_bidan_1', lockBidanFields)}
                                     ${createUploadBox('foto_bidan_2', lockBidanFields)}
@@ -441,7 +504,11 @@ function renderForm() {
 
 // --- 5. EVENT HANDLERS ---
 window.newPatient = function() {
-    updateState({ view: 'form', formData: { ...emptyForm }, selectedRm: null });
+    // Generate nomor RM otomatis, misal "RM-001"
+    const nextNum = state.patients.length + 1;
+    const generatedRM = "RM-" + String(nextNum).padStart(3, '0');
+    
+    updateState({ view: 'form', formData: { ...emptyForm, no: generatedRM }, selectedRm: null });
 };
 
 window.loginSuperAdmin = function() {
