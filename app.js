@@ -347,11 +347,15 @@ function createInput(label, id, type = 'text', value, options = null, disabled =
             opts += `<option value="${opt}" ${isSelected}>${opt}</option>`;
         });
         inputHTML = `<select class="form-select" id="${id}" ${disabledAttr} onchange="handleInput('${id}', this.value)">${opts}</select>`;
+    } else if (type === 'textarea') {
+        const valAttr = value || '';
+        inputHTML = `<textarea class="form-input" id="${id}" placeholder="${placeholder}" ${disabledAttr} onchange="handleInput('${id}', this.value)" rows="3" style="resize: vertical; font-family: inherit;">${valAttr}</textarea>`;
     } else {
         const valAttr = value ? `value="${value}"` : '';
         inputHTML = `<input class="form-input" type="${type}" id="${id}" ${valAttr} placeholder="${placeholder}" ${disabledAttr} onchange="handleInput('${id}', this.value)">`;
     }
-    return `<div class="form-group"><label class="form-label">${label}</label>${inputHTML}</div>`;
+    const wrapperClass = type === 'textarea' ? 'form-group col-span-full' : 'form-group';
+    return `<div class="${wrapperClass}"><label class="form-label">${label}</label>${inputHTML}</div>`;
 }
 
 function createCheckbox(label, id, checked, disabled = false) {
@@ -445,7 +449,7 @@ function renderForm() {
                         <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">🚑 3. Data & Terapi Pra-Rujukan</div>
                         <div class="card-body">
                             ${createInput('Status Rujukan Dari', 'status_rujukan', 'text', f.status_rujukan, ['PKM', 'BPM', 'RS', 'KLINIK', 'DTS', 'LAINNYA'], lockRsudFields)}
-                            ${createInput('Diagnosa Rujukan', 'diagnosa_rujukan', 'text', f.diagnosa_rujukan, null, lockRsudFields, 'Diagnosa...')}
+                            ${createInput('Diagnosa Rujukan', 'diagnosa_rujukan', 'textarea', f.diagnosa_rujukan, null, lockRsudFields, 'Diagnosa...')}
                             
                             <div class="form-group col-span-full">
                                 <label class="form-label">Terapi Pra Rujukan Diberikan:</label>
@@ -455,7 +459,7 @@ function renderForm() {
                                     ${createCheckbox('Obat Kejang', 'terapi_obat_kejang', f.terapi_obat_kejang, lockRsudFields)}
                                 </div>
                             </div>
-                            ${createInput('Obat Lainnya', 'terapi_lain', 'text', f.terapi_lain, null, lockRsudFields, 'Obat Lain...')}
+                            ${createInput('Obat Lainnya', 'terapi_lain', 'textarea', f.terapi_lain, null, lockRsudFields, 'Obat Lain...')}
                         </div>
                     </div>
 
@@ -463,8 +467,8 @@ function renderForm() {
                     <div class="form-card">
                         <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">🏥 4. Intervensi & Keluar RSUD</div>
                         <div class="card-body">
-                            ${createInput('Diagnosa Awal (RSUD)', 'diagnosa_awal', 'text', f.diagnosa_awal, null, lockRsudFields)}
-                            ${createInput('Diagnosa Akhir (Ruang Rawat)', 'diagnosa_akhir', 'text', f.diagnosa_akhir, null, lockRsudFields)}
+                            ${createInput('Diagnosa Awal (RSUD)', 'diagnosa_awal', 'textarea', f.diagnosa_awal, null, lockRsudFields)}
+                            ${createInput('Diagnosa Akhir (Ruang Rawat)', 'diagnosa_akhir', 'textarea', f.diagnosa_akhir, null, lockRsudFields)}
                             
                             <div class="form-group col-span-full">
                                 <label class="form-label">Terpasang Alat:</label>
