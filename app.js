@@ -24,7 +24,7 @@ const scriptURL = 'https://script.google.com/macros/s/AKfycbxb2l_akdbIaN5SHf0oZo
 const emptyForm = {
     id: null, no: '', nama_pasien: '', tgl_lahir: '', no_register: '', jenis_kelamin: '', tgl_kunjungan_rs: '', umur_bayi: '', kelainan_kongenital: '',
     umur_kehamilan: '', bb_lahir: '', hamil_ke: '', jenis_kehamilan: '', cara_lahir: '', indikasi_ibu: '', apgar_score: '', mendapat_resusitasi: '',
-    status_rujukan: '', diagnosa_rujukan: '', terapi_infus: false, terapi_antibiotik: false, terapi_obat_kejang: false, terapi_nihil: false, terapi_lain: '',
+    status_rujukan: '', nama_faskes_rujukan: '', diagnosa_rujukan: '', terapi_infus: false, terapi_antibiotik: false, terapi_obat_kejang: false, terapi_nihil: false, terapi_lain: '',
     diagnosa_awal: '', diagnosa_akhir: '', alat_tpeace: false, alat_o2nasal: false, alat_cpap: false, alat_venti: false, alat_nihil: false,
     minum: '', imunisasi: '', cairan_parenteral: '', pmk: '', kondisi_krs: '',
     tgl_kunjungan_bidan: '', bb_kunjungan: '', pb_kunjungan: '', keadaan_umum: '', suhu: '', nadi: '', pernafasan: '',
@@ -32,7 +32,8 @@ const emptyForm = {
     foto_rs_1: '', foto_rs_1_name: '', foto_rs_1_type: '',
     foto_rs_2: '', foto_rs_2_name: '', foto_rs_2_type: '',
     foto_bidan_1: '', foto_bidan_1_name: '', foto_bidan_1_type: '',
-    foto_bidan_2: '', foto_bidan_2_name: '', foto_bidan_2_type: ''
+    foto_bidan_2: '', foto_bidan_2_name: '', foto_bidan_2_type: '',
+    nama_petugas_rs: '', kontak_petugas_rs: '', nama_bidan: '', kontak_bidan: ''
 };
 
 // --- 2. UTILITY FUNCTIONS ---
@@ -67,6 +68,16 @@ function formatForDateTimeInput(dateStr) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+function formatForDateInput(dateStr) {
+    if (!dateStr) return '';
+    let d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function handleInput(field, value, isCheckbox = false) {
     state.formData[field] = isCheckbox ? value === true : value;
 
@@ -94,6 +105,30 @@ function handleInput(field, value, isCheckbox = false) {
     } else if ((field === 'alat_tpeace' || field === 'alat_o2nasal' || field === 'alat_cpap' || field === 'alat_venti') && value) {
         state.formData.alat_nihil = false;
         if(document.getElementById('alat_nihil')) document.getElementById('alat_nihil').checked = false;
+    }
+    if (field === 'tgl_lahir' || field === 'tgl_kunjungan_rs') {
+        if (state.formData.tgl_lahir) {
+            const tglLahir = new Date(state.formData.tgl_lahir);
+            const tglKunjungan = state.formData.tgl_kunjungan_rs ? new Date(state.formData.tgl_kunjungan_rs) : new Date();
+            if (!isNaN(tglLahir) && !isNaN(tglKunjungan)) {
+                let diffTime = tglKunjungan.getTime() - tglLahir.getTime();
+                if (diffTime < 0) diffTime = 0;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                let umurStr = '';
+                if (diffDays === 0) umurStr = '0 Hari';
+                else if (diffDays < 30) umurStr = `${diffDays} Hari`;
+                else {
+                    const months = Math.floor(diffDays / 30);
+                    const days = diffDays % 30;
+                    umurStr = `${months} Bulan ${days > 0 ? days + ' Hari' : ''}`;
+                }
+                
+                state.formData.umur_bayi = umurStr;
+                const umurInput = document.getElementById('umur_bayi');
+                if (umurInput) umurInput.value = umurStr;
+            }
+        }
     }
 }
 
@@ -198,6 +233,9 @@ function renderHeader() {
             <div class="header-title">
                 <h1>Sistem Terintegrasi <span class="${state.role}">MOMS-LINK</span></h1>
                 <p>Midwifery Online Monitoring System - Link</p>
+                <div id="live-clock" style="font-size: 0.85rem; font-weight: 600; color: var(--text-tertiary); margin-top: 0.35rem; display: flex; align-items: center; gap: 0.25rem;">
+                    ⏱️ --
+                </div>
             </div>
             <div class="role-switcher" style="justify-content: flex-end; gap: 1rem;">
                 <span style="font-weight: 500; color: var(--text-secondary); display: flex; align-items: center;">
@@ -251,12 +289,17 @@ function renderList() {
             } else {
                 perkembangan = 'Baru';
             }
+            
+            let tglLahirText = formatDateTime(row.tgl_lahir);
+            if (lastRecord.umur_bayi) {
+                tglLahirText += ` <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;">(${lastRecord.umur_bayi})</span>`;
+            }
 
             tableRows += `
                 <tr onclick="viewPatient('${row.no}')" style="cursor: pointer;" title="Klik untuk melihat riwayat lengkap">
                     <td class="font-medium">${row.no}</td>
                     <td>${row.nama_pasien}</td>
-                    <td>${row.tgl_lahir}</td>
+                    <td>${tglLahirText}</td>
                     <td><span class="badge">${perkembangan}</span></td>
                     <td>${statusBadge}</td>
                     <td>
@@ -358,8 +401,8 @@ function renderPatientDetail() {
                     <div><strong>Kelahiran:</strong> ${h.cara_lahir || '-'}, BB: ${h.bb_lahir || '-'}g, UK: ${h.umur_kehamilan || '-'} mgg</div>
                     <div><strong>Diagnosa Awal:</strong> ${h.diagnosa_awal || '-'}</div>
                     <div><strong>Diagnosa Akhir:</strong> ${h.diagnosa_akhir || '-'}</div>
-                    <div style="grid-column: 1 / -1;"><strong>Tindakan / Terapi (Tahap 1-4):</strong> ${terapiText}</div>
-                    <div><strong>Rujukan:</strong> ${h.status_rujukan || '-'} ${h.diagnosa_rujukan ? `(${h.diagnosa_rujukan})` : ''}</div>
+                    <div><strong>Tindakan / Terapi (Tahap 1-4):</strong> ${terapiText}</div>
+                    <div><strong>Rujukan:</strong> ${h.status_rujukan || '-'} ${h.nama_faskes_rujukan ? `(${h.nama_faskes_rujukan})` : ''} ${h.diagnosa_rujukan ? `[${h.diagnosa_rujukan}]` : ''}</div>
                     <div><strong>Tindakan Lanjutan (KRS):</strong> <span class="badge ${h.kondisi_krs && h.kondisi_krs.includes('MENINGGAL') ? 'warning' : 'success'}">${h.kondisi_krs || '-'}</span></div>
                     <div style="grid-column: 1 / -1;"><strong>Tindakan Lainnya:</strong> PMK: ${h.pmk || '-'} | Minum: ${h.minum || '-'} | Imunisasi: ${h.imunisasi || '-'}</div>
                 </div>
@@ -369,6 +412,16 @@ function renderPatientDetail() {
                 if(h.foto_rs_1) rsudSection += `<img src="${h.foto_rs_1}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_rs_1}')">`;
                 if(h.foto_rs_2) rsudSection += `<img src="${h.foto_rs_2}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_rs_2}')">`;
                 rsudSection += `</div>`;
+            }
+            if (h.nama_petugas_rs || h.kontak_petugas_rs) {
+                let waLink = h.kontak_petugas_rs ? h.kontak_petugas_rs.replace(/^0/, '62').replace(/\D/g, '') : '';
+                let waBtn = waLink ? `<a href="https://wa.me/${waLink}" target="_blank" class="btn-wa">💬 Hubungi via WA</a>` : '';
+                rsudSection += `
+                    <div class="contact-card rsud" style="margin-bottom: 1rem;">
+                        <div><span class="contact-label">👤 Petugas RS:</span> ${h.nama_petugas_rs || '-'}</div>
+                        ${waBtn}
+                    </div>
+                `;
             }
         }
 
@@ -394,6 +447,16 @@ function renderPatientDetail() {
                 if(h.foto_bidan_1) bidanSection += `<img src="${h.foto_bidan_1}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_bidan_1}')">`;
                 if(h.foto_bidan_2) bidanSection += `<img src="${h.foto_bidan_2}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_bidan_2}')">`;
                 bidanSection += `</div>`;
+            }
+            if (h.nama_bidan || h.kontak_bidan) {
+                let waLink = h.kontak_bidan ? h.kontak_bidan.replace(/^0/, '62').replace(/\D/g, '') : '';
+                let waBtn = waLink ? `<a href="https://wa.me/${waLink}" target="_blank" class="btn-wa">💬 Hubungi via WA</a>` : '';
+                bidanSection += `
+                    <div class="contact-card bidan" style="margin-top: 1rem;">
+                        <div><span class="contact-label">🌸 Bidan Pemantau:</span> ${h.nama_bidan || '-'}</div>
+                        ${waBtn}
+                    </div>
+                `;
             }
         }
 
@@ -519,7 +582,7 @@ function renderForm() {
                         <div class="card-body">
                             ${createInput('No. Urut / RM', 'no', 'text', f.no, null, lockRsudFields || f.no !== '', 'Nomor urut...')}
                             ${createInput('Nama Pasien Bayi', 'nama_pasien', 'text', f.nama_pasien, null, lockRsudFields, 'Nama lengkap...')}
-                            ${createInput('Tanggal Lahir', 'tgl_lahir', 'date', f.tgl_lahir, null, lockRsudFields)}
+                            ${createInput('Tanggal Lahir', 'tgl_lahir', 'date', formatForDateInput(f.tgl_lahir), null, lockRsudFields)}
                             ${createInput('No. Register', 'no_register', 'text', f.no_register, null, lockRsudFields, 'Nomor Register...')}
                             ${createInput('Jenis Kelamin', 'jenis_kelamin', 'text', f.jenis_kelamin, ['Perempuan (P)', 'Laki-laki (L)'], lockRsudFields)}
                             ${createInput('Umur Bayi', 'umur_bayi', 'text', f.umur_bayi, null, lockRsudFields, 'Dalam hari/bulan...')}
@@ -547,7 +610,10 @@ function renderForm() {
                     <div class="form-card">
                         <div class="card-header ${lockRsudFields ? 'theme-gray' : 'theme-blue'}">🚑 3. Data & Terapi Pra-Rujukan</div>
                         <div class="card-body">
-                            ${createInput('Status Rujukan Dari', 'status_rujukan', 'text', f.status_rujukan, ['PKM', 'BPM', 'RS', 'KLINIK', 'DTS', 'LAINNYA'], lockRsudFields)}
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                ${createInput('Status Rujukan Dari', 'status_rujukan', 'text', f.status_rujukan, ['PKM', 'BPM', 'RS', 'KLINIK', 'DTS', 'LAINNYA'], lockRsudFields)}
+                                ${createInput('Nama Lokasi / Faskes', 'nama_faskes_rujukan', 'text', f.nama_faskes_rujukan, null, lockRsudFields, 'Ketik nama faskes...')}
+                            </div>
                             ${createInput('Diagnosa Rujukan', 'diagnosa_rujukan', 'textarea', f.diagnosa_rujukan, null, lockRsudFields, 'Diagnosa...')}
                             
                             <div class="form-group col-span-full">
@@ -595,6 +661,14 @@ function renderForm() {
                                     ${createUploadBox('foto_rs_2', lockRsudFields)}
                                 </div>
                             </div>
+                            
+                            <div class="col-span-full border-top">
+                                <label class="form-label mb-2 block" style="color: var(--rsud-primary);">👤 Identitas Penginput (RSUD)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    ${createInput('Nama Petugas RS / Instansi', 'nama_petugas_rs', 'text', f.nama_petugas_rs, null, lockRsudFields, 'Nama Petugas...')}
+                                    ${createInput('No. WhatsApp (Contoh: 081234...)', 'kontak_petugas_rs', 'text', f.kontak_petugas_rs, null, lockRsudFields, '08...')}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -624,6 +698,14 @@ function renderForm() {
                                 <div class="upload-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
                                     ${createUploadBox('foto_bidan_1', lockBidanFields)}
                                     ${createUploadBox('foto_bidan_2', lockBidanFields)}
+                                </div>
+                            </div>
+
+                            <div class="col-span-full border-top">
+                                <label class="form-label mb-2 block" style="color: var(--bidan-primary);">👤 Identitas Bidan Pemantau</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    ${createInput('Nama Bidan Pemantau', 'nama_bidan', 'text', f.nama_bidan, null, lockBidanFields, 'Nama Bidan...')}
+                                    ${createInput('No. WhatsApp (Contoh: 081234...)', 'kontak_bidan', 'text', f.kontak_bidan, null, lockBidanFields, '08...')}
                                 </div>
                             </div>
                         </div>
@@ -688,7 +770,13 @@ window.addControl = function(sourceRole) {
 window.editRecord = function(id) {
     const record = state.records.find(r => r.id === id);
     if (record) {
-        updateState({ view: 'form', formData: { ...record } });
+        let formData = { ...record };
+        if (!formData.nama_faskes_rujukan && formData.status_rujukan && formData.status_rujukan.includes(' - ')) {
+            const parts = formData.status_rujukan.split(' - ');
+            formData.status_rujukan = parts[0];
+            formData.nama_faskes_rujukan = parts.slice(1).join(' - ');
+        }
+        updateState({ view: 'form', formData: formData });
     }
 };
 
@@ -719,11 +807,13 @@ window.submitForm = async function(e) {
     }
 
     updateState({ isSubmitting: true });
+    
+    const payload = { ...state.formData };
 
     try {
         const response = await fetch(scriptURL, { 
             method: 'POST', 
-            body: JSON.stringify(state.formData) 
+            body: JSON.stringify(payload) 
         });
         const result = await response.json();
 
@@ -793,12 +883,41 @@ function renderApp() {
             html += renderForm();
         }
     }
+    
+    html += `
+        <div style="text-align: center; margin-top: 2rem; padding-bottom: 2rem; font-size: 0.8rem; color: var(--text-tertiary);">
+            Ada Kendala Teknis atau Perlu Koreksi Data? Hubungi Super Admin | design by <a href="https://wa.me/6281233249944" target="_blank" style="color: inherit; text-decoration: underline; font-weight: 600;">nox86</a>
+        </div>
+    `;
+    
     html += `</div>`;
     
     app.innerHTML = html;
 }
 
+function startClock() {
+    setInterval(() => {
+        const clockEl = document.getElementById('live-clock');
+        if (clockEl) {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const dayName = days[now.getDay()];
+            const date = String(now.getDate()).padStart(2, '0');
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            clockEl.textContent = `⏱️ ${dayName}, ${date} ${monthName} ${year} | Pukul ${hours}:${minutes} WIB`;
+        }
+    }, 1000);
+}
+
 // Bootstrap
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
+    startClock();
 });

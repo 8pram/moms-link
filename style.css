@@ -480,6 +480,43 @@ input, select {
 
 
 /* ==========================================================================
+   WhatsApp Contact Components
+   ========================================================================== */
+.contact-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    background: #f8fafc;
+    border: 1px solid var(--gray-border);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.contact-card.rsud { border-color: var(--rsud-border); background: var(--rsud-light); }
+.contact-card.bidan { border-color: var(--bidan-border); background: var(--bidan-light); }
+
+.contact-label { font-weight: 600; color: var(--text-secondary); margin-right: 0.25rem; }
+
+.btn-wa {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    background-color: #25D366;
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+.btn-wa:hover {
+    background-color: #128C7E;
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
    Form View Components
    ========================================================================== */
 .form-header {
