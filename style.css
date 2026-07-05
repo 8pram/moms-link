@@ -211,6 +211,77 @@ input, select {
 }
 
 /* ==========================================================================
+   Custom Modals (Popup)
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+.modal-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: bounce 2s infinite;
+}
+.modal-title {
+    font-size: 1.25rem;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+.modal-message {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+.modal-actions button {
+    flex: 1;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+}
+.btn-danger:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+}
+.btn-primary-modal {
+    background-color: var(--rsud-primary);
+    color: white;
+    border: none;
+}
+.btn-primary-modal:hover {
+    background-color: var(--rsud-primary-hover);
+    transform: translateY(-1px);
+}
+
+/* ==========================================================================
    View Transitions
    ========================================================================== */
 .fade-in {

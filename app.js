@@ -68,6 +68,27 @@ function formatForDateTimeInput(dateStr) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+window.showConfirmModal = function(icon, title, message, confirmText, confirmClass, onConfirm) {
+    const modalHtml = `
+        <div id="custom-modal" class="modal-overlay fade-in">
+            <div class="modal-content scale-in">
+                <div class="modal-icon">${icon}</div>
+                <h3 class="modal-title">${title}</h3>
+                <p class="modal-message">${message}</p>
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="document.getElementById('custom-modal').remove()">Batal</button>
+                    <button class="${confirmClass}" id="modal-confirm-btn">${confirmText}</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    document.getElementById('modal-confirm-btn').onclick = () => {
+        document.getElementById('custom-modal').remove();
+        onConfirm();
+    };
+};
+
 function formatForDateInput(dateStr) {
     if (!dateStr) return '';
     let d = new Date(dateStr);
@@ -740,9 +761,16 @@ window.loginSuperAdmin = function() {
 };
 
 window.exitApp = function() {
-    if (confirm("Anda akan keluar aplikasi? Pastikan data sudah benar dan tersimpan")) {
-        updateState({ role: null, view: 'login' });
-    }
+    showConfirmModal(
+        "🚪",
+        "Keluar Aplikasi?", 
+        "Pastikan semua data sudah terisi dengan benar dan tersimpan sebelum Anda keluar.",
+        "Ya, Keluar",
+        "btn-danger",
+        () => {
+            updateState({ role: null, view: 'login' });
+        }
+    );
 };
 
 window.viewPatient = function(noRm) {
