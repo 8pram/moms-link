@@ -33,7 +33,8 @@ const emptyForm = {
     foto_rs_2: '', foto_rs_2_name: '', foto_rs_2_type: '',
     foto_bidan_1: '', foto_bidan_1_name: '', foto_bidan_1_type: '',
     foto_bidan_2: '', foto_bidan_2_name: '', foto_bidan_2_type: '',
-    nama_petugas_rs: '', kontak_petugas_rs: '', nama_bidan: '', kontak_bidan: ''
+    nama_petugas_rs: '', kontak_petugas_rs: '', nama_bidan: '', kontak_bidan: '',
+    is_dirujuk: false, lokasi_rujukan_lanjutan: ''
 };
 
 // --- 2. UTILITY FUNCTIONS ---
@@ -226,6 +227,10 @@ function processRecords(rawRecords) {
         // Update latest info
         if (record.tgl_kunjungan_rs) grouped[record.no].latest_krs = record.tgl_kunjungan_rs;
         if (record.diagnosa_akhir) grouped[record.no].latest_diagnosa = record.diagnosa_akhir;
+        if (record.is_dirujuk) {
+            grouped[record.no].is_dirujuk = record.is_dirujuk;
+            grouped[record.no].lokasi_rujukan_lanjutan = record.lokasi_rujukan_lanjutan;
+        }
     });
     
     state.patients = Object.values(grouped).sort((a, b) => {
@@ -258,6 +263,9 @@ function renderLogin() {
                 <button class="btn-role superadmin" style="padding: 1.5rem 2rem; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-radius: 12px;" onclick="loginSuperAdmin()">
                     <span style="font-size: 2rem;">🛡️</span> Superadmin
                 </button>
+                <button class="btn-role faskes_rujukan" style="padding: 1.5rem 2rem; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-radius: 12px; background: rgba(239, 68, 68, 0.05); border: 1px solid #ef4444;" onclick="updateState({role: 'faskes_rujukan', view: 'list', currentPage: 1})">
+                    <span style="font-size: 2rem;">🚑</span> Faskes Rujukan Lanjutan
+                </button>
             </div>
         </div>
     `;
@@ -269,6 +277,7 @@ function renderHeader() {
     else if(state.role === 'bidan') roleText = '🌸 Bidan Pemantau';
     else if(state.role === 'dinkes') roleText = '👁️ Pengawas (Dinkes)';
     else if(state.role === 'superadmin') roleText = '🛡️ Superadmin';
+    else if(state.role === 'faskes_rujukan') roleText = '🚑 Faskes Rujukan Lanjutan';
 
     return `
         <div class="app-header fade-in">
@@ -309,6 +318,11 @@ function renderList() {
         filtered = filtered.filter(p => !p.history.some(h => h.tgl_kunjungan_bidan));
     }
     
+    // Filter khusus Faskes Rujukan Lanjutan
+    if (state.role === 'faskes_rujukan') {
+        filtered = filtered.filter(p => p.is_dirujuk === true);
+    }
+
     const totalPages = Math.ceil(filtered.length / state.itemsPerPage);
     const startIndex = (state.currentPage - 1) * state.itemsPerPage;
     const currentData = filtered.slice(startIndex, startIndex + state.itemsPerPage);
@@ -337,17 +351,25 @@ function renderList() {
                 tglLahirText += ` <span style="color: var(--text-secondary); font-size: 0.8rem; font-weight: 500;">(${lastRecord.umur_bayi})</span>`;
             }
 
+            let nameCell = row.nama_pasien;
+            if (row.is_dirujuk) {
+                nameCell += `<div style="margin-top: 4px;"><span class="badge warning" style="font-size: 0.7rem; background-color: #fee2e2; color: #ef4444; border: 1px solid #fca5a5;">Dirujuk ke: ${row.lokasi_rujukan_lanjutan}</span></div>`;
+            }
+
+            let actionBtns = `<button class="btn-action ${state.role}" onclick="event.stopPropagation(); viewPatient('${row.no}')">Lihat Riwayat</button>`;
+            if (state.role === 'superadmin') {
+                actionBtns += `<button class="btn-action" style="margin-left: 0.5rem; background-color: #fee2e2; color: #ef4444; border-color: #ef4444;" onclick="event.stopPropagation(); showRujukanModal('${row.no}')">Rujuk</button>`;
+            }
+
             tableRows += `
                 <tr onclick="viewPatient('${row.no}')" style="cursor: pointer;" title="Klik untuk melihat riwayat lengkap">
                     <td class="font-medium">${row.no}</td>
-                    <td>${row.nama_pasien}</td>
+                    <td>${nameCell}</td>
                     <td>${tglLahirText}</td>
                     <td><span class="badge">${perkembangan}</span></td>
                     <td>${statusBadge}</td>
                     <td>
-                        <button class="btn-action ${state.role}" onclick="event.stopPropagation(); viewPatient('${row.no}')">
-                            Lihat Riwayat
-                        </button>
+                        ${actionBtns}
                     </td>
                 </tr>
             `;
@@ -890,6 +912,81 @@ window.submitForm = async function(e) {
         console.error("Error:", error);
         alert("❌ Gagal mengirim data. Pastikan koneksi internet Anda stabil.");
         updateState({ isSubmitting: false });
+    }
+};
+
+window.showRujukanModal = function(noRm) {
+    const patient = state.patients.find(p => p.no === noRm);
+    if (!patient) return;
+
+    const modalHtml = `
+        <div id="rujukan-modal" class="modal-overlay fade-in">
+            <div class="modal-content scale-in" style="max-width: 400px; text-align: left;">
+                <h3 class="modal-title" style="margin-bottom: 1rem;">Opsi Rujukan Pasien</h3>
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">Tandai rujukan untuk <strong>${patient.nama_pasien}</strong></p>
+                <div class="form-group">
+                    <label class="checkbox-label" style="margin-bottom: 1rem;">
+                        <input type="checkbox" id="modal-is-dirujuk" ${patient.is_dirujuk ? 'checked' : ''} onchange="document.getElementById('modal-lokasi').disabled = !this.checked">
+                        <span class="checkbox-text" style="font-weight: 600; color: #ef4444;">Pasien Dirujuk ke Faskes Lanjutan</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Lokasi Rujukan (Ketik Manual)</label>
+                    <input type="text" class="form-input" id="modal-lokasi" placeholder="Misal: RSUD Saiful Anwar" value="${patient.lokasi_rujukan_lanjutan || ''}" ${patient.is_dirujuk ? '' : 'disabled'}>
+                </div>
+                <div class="modal-actions" style="margin-top: 1.5rem; justify-content: flex-end;">
+                    <button class="btn-cancel" onclick="document.getElementById('rujukan-modal').remove()">Batal</button>
+                    <button class="btn-primary" onclick="simpanRujukan('${noRm}')">Simpan</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.simpanRujukan = async function(noRm) {
+    const patient = state.patients.find(p => p.no === noRm);
+    if (!patient || patient.history.length === 0) return;
+
+    const isDirujuk = document.getElementById('modal-is-dirujuk').checked;
+    const lokasi = document.getElementById('modal-lokasi').value.trim();
+
+    if (isDirujuk && !lokasi) {
+        alert("Mohon ketik lokasi rujukan!");
+        return;
+    }
+
+    // Ambil record terakhir untuk di-update
+    const lastRecord = { ...patient.history[patient.history.length - 1] };
+    lastRecord.is_dirujuk = isDirujuk;
+    lastRecord.lokasi_rujukan_lanjutan = isDirujuk ? lokasi : '';
+
+    const btnSimpan = document.querySelector('#rujukan-modal .btn-primary');
+    btnSimpan.textContent = 'Menyimpan...';
+    btnSimpan.disabled = true;
+
+    try {
+        const response = await fetch(scriptURL, { 
+            method: 'POST', 
+            body: JSON.stringify(lastRecord) 
+        });
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            alert("✅ Status Rujukan Berhasil Disimpan");
+            document.getElementById('rujukan-modal').remove();
+            await loadData();
+            updateState({}); // force re-render
+        } else {
+            alert("❌ Gagal menyimpan: " + result.message);
+            btnSimpan.textContent = 'Simpan';
+            btnSimpan.disabled = false;
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("❌ Terjadi kesalahan koneksi.");
+        btnSimpan.textContent = 'Simpan';
+        btnSimpan.disabled = false;
     }
 };
 
