@@ -153,6 +153,27 @@ function handleInput(field, value, isCheckbox = false) {
     }
 }
 
+window.autofillContact = function(type, name) {
+    if (!name) return;
+    let contact = '';
+    if (type === 'rs') {
+        const found = state.records.find(r => r.nama_petugas_rs === name && r.kontak_petugas_rs);
+        if (found) contact = found.kontak_petugas_rs;
+    } else if (type === 'bidan') {
+        const found = state.records.find(r => r.nama_bidan === name && r.kontak_bidan);
+        if (found) contact = found.kontak_bidan;
+    }
+    if (contact) {
+        const fieldName = type === 'rs' ? 'kontak_petugas_rs' : 'kontak_bidan';
+        state.formData[fieldName] = contact;
+        const inputEl = document.getElementById(fieldName);
+        if (inputEl) {
+            inputEl.value = contact;
+            inputEl.classList.remove('error-blink');
+        }
+    }
+};
+
 // Multi-File Upload Handler
 window.handleFileUpload = function(event, fieldPrefix) {
     const file = event.target.files[0];
@@ -222,7 +243,7 @@ function renderLogin() {
         <div class="login-container fade-in" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh;">
             <div style="text-align: center; margin-bottom: 2rem;">
                 <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; color: var(--text-main);">Selamat Datang</h1>
-                <p style="color: var(--text-secondary); font-size: 1.1rem;">Silakan pilih peran Anda untuk masuk ke sistem MOMS-LINK</p>
+                <p style="color: var(--text-secondary); font-size: 1.1rem;">Silakan pilih peran Anda untuk masuk ke sistem NEO-LINK GRATI</p>
             </div>
             <div class="role-cards" style="display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; max-width: 800px;">
                 <button class="btn-role rsud" style="padding: 1.5rem 2rem; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; border-radius: 12px;" onclick="updateState({role: 'rsud', view: 'list', currentPage: 1})">
@@ -252,8 +273,8 @@ function renderHeader() {
     return `
         <div class="app-header fade-in">
             <div class="header-title">
-                <h1>Sistem Terintegrasi <span class="${state.role}">MOMS-LINK</span></h1>
-                <p>Midwifery Online Monitoring System - Link</p>
+                <h1>Sistem Terintegrasi <span class="${state.role}">NEO-LINK GRATI</span></h1>
+                <p>NEOnatal Online Monitoring System - LINK RSUD GRATI</p>
                 <div id="live-clock" style="font-size: 0.85rem; font-weight: 600; color: var(--text-tertiary); margin-top: 0.35rem; display: flex; align-items: center; gap: 0.25rem;">
                     ⏱️ --
                 </div>
@@ -520,7 +541,7 @@ function renderPatientDetail() {
     `;
 }
 
-function createInput(label, id, type = 'text', value, options = null, disabled = false, placeholder = '') {
+function createInput(label, id, type = 'text', value, options = null, disabled = false, placeholder = '', extraAttrs = '') {
     const disabledAttr = disabled ? 'disabled' : '';
     let inputHTML = '';
     if (options) {
@@ -529,13 +550,13 @@ function createInput(label, id, type = 'text', value, options = null, disabled =
             const isSelected = value === opt ? 'selected' : '';
             opts += `<option value="${opt}" ${isSelected}>${opt}</option>`;
         });
-        inputHTML = `<select class="form-select" id="${id}" ${disabledAttr} onchange="handleInput('${id}', this.value)">${opts}</select>`;
+        inputHTML = `<select class="form-select" id="${id}" ${disabledAttr} ${extraAttrs} onchange="handleInput('${id}', this.value)">${opts}</select>`;
     } else if (type === 'textarea') {
         const valAttr = value || '';
-        inputHTML = `<textarea class="form-input" id="${id}" placeholder="${placeholder}" ${disabledAttr} onchange="handleInput('${id}', this.value)" rows="5" style="resize: vertical; font-family: inherit;">${valAttr}</textarea>`;
+        inputHTML = `<textarea class="form-input" id="${id}" placeholder="${placeholder}" ${disabledAttr} ${extraAttrs} onchange="handleInput('${id}', this.value)" rows="5" style="resize: vertical; font-family: inherit;">${valAttr}</textarea>`;
     } else {
         const valAttr = value ? `value="${value}"` : '';
-        inputHTML = `<input class="form-input" type="${type}" id="${id}" ${valAttr} placeholder="${placeholder}" ${disabledAttr} onchange="handleInput('${id}', this.value)">`;
+        inputHTML = `<input class="form-input" type="${type}" id="${id}" ${valAttr} placeholder="${placeholder}" ${disabledAttr} ${extraAttrs} onchange="handleInput('${id}', this.value)">`;
     }
     const wrapperClass = type === 'textarea' ? 'form-group col-span-full' : 'form-group';
     return `<div class="${wrapperClass}"><label class="form-label">${label}</label>${inputHTML}</div>`;
@@ -585,8 +606,17 @@ function renderForm() {
     const isNew = !f.id;
     const title = isNew ? 'Input Riwayat Baru' : 'Edit Riwayat Medis';
 
+    const datalistPetugasRS = [...new Set(state.records.map(r => r.nama_petugas_rs).filter(v => v))];
+    const datalistBidan = [...new Set(state.records.map(r => r.nama_bidan).filter(v => v))];
+
     return `
         <div class="fade-in">
+            <datalist id="list-petugas-rs">
+                ${datalistPetugasRS.map(v => `<option value="${v}">`).join('')}
+            </datalist>
+            <datalist id="list-bidan">
+                ${datalistBidan.map(v => `<option value="${v}">`).join('')}
+            </datalist>
             <div class="form-header">
                 <button class="btn-back" onclick="updateState({view: state.selectedRm ? 'detail' : 'list'})">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -605,7 +635,7 @@ function renderForm() {
                             ${createInput('Nama Pasien Bayi', 'nama_pasien', 'text', f.nama_pasien, null, lockRsudFields, 'Nama lengkap...')}
                             ${createInput('Tanggal Lahir', 'tgl_lahir', 'date', formatForDateInput(f.tgl_lahir), null, lockRsudFields)}
                             ${createInput('No. Register', 'no_register', 'text', f.no_register, null, lockRsudFields, 'Nomor Register...')}
-                            ${createInput('Jenis Kelamin', 'jenis_kelamin', 'text', f.jenis_kelamin, ['Perempuan (P)', 'Laki-laki (L)'], lockRsudFields)}
+                            ${createInput('Jenis Kelamin', 'jenis_kelamin', 'text', f.jenis_kelamin, ['Perempuan (P)', 'Laki-laki (L)', 'Ambiguous Genitalia'], lockRsudFields)}
                             ${createInput('Umur Bayi', 'umur_bayi', 'text', f.umur_bayi, null, lockRsudFields, 'Dalam hari/bulan...')}
                             ${createInput('Tanggal & Jam Kunjungan ke RS', 'tgl_kunjungan_rs', 'datetime-local', formatForDateTimeInput(f.tgl_kunjungan_rs), null, lockRsudFields)}
                             ${createInput('Kelainan Kongenital', 'kelainan_kongenital', 'text', f.kelainan_kongenital, null, lockRsudFields, 'Ada/Tidak, sebutkan...')}
@@ -686,7 +716,7 @@ function renderForm() {
                             <div class="col-span-full border-top">
                                 <label class="form-label mb-2 block" style="color: var(--rsud-primary);">👤 Identitas Penginput (RSUD)</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                    ${createInput('Nama Petugas RS / Instansi', 'nama_petugas_rs', 'text', f.nama_petugas_rs, null, lockRsudFields, 'Nama Petugas...')}
+                                    ${createInput('Nama Petugas RS / Instansi', 'nama_petugas_rs', 'text', f.nama_petugas_rs, null, lockRsudFields, 'Nama Petugas...', 'list="list-petugas-rs" oninput="autofillContact(\\\'rs\\\', this.value)"')}
                                     ${createInput('No. WhatsApp (Contoh: 081234...)', 'kontak_petugas_rs', 'text', f.kontak_petugas_rs, null, lockRsudFields, '08...')}
                                 </div>
                             </div>
@@ -725,7 +755,7 @@ function renderForm() {
                             <div class="col-span-full border-top">
                                 <label class="form-label mb-2 block" style="color: var(--bidan-primary);">👤 Identitas Bidan Pemantau</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                    ${createInput('Nama Bidan Pemantau', 'nama_bidan', 'text', f.nama_bidan, null, lockBidanFields, 'Nama Bidan...')}
+                                    ${createInput('Nama Bidan Pemantau', 'nama_bidan', 'text', f.nama_bidan, null, lockBidanFields, 'Nama Bidan...', 'list="list-bidan" oninput="autofillContact(\\\'bidan\\\', this.value)"')}
                                     ${createInput('No. WhatsApp (Contoh: 081234...)', 'kontak_bidan', 'text', f.kontak_bidan, null, lockBidanFields, '08...')}
                                 </div>
                             </div>
@@ -821,11 +851,13 @@ window.submitForm = async function(e) {
         input.classList.remove('error-blink');
         if (!optionalFields.includes(input.id) && !input.value.trim()) {
             hasError = true;
-            input.classList.add('error-blink');
+            if (state.role !== 'superadmin') {
+                input.classList.add('error-blink');
+            }
         }
     });
     
-    if (hasError) {
+    if (hasError && state.role !== 'superadmin') {
         alert("⚠️ Terdapat data wajib yang belum diisi. Mohon periksa kolom yang berkedip merah.");
         return;
     }
