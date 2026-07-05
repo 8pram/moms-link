@@ -1612,6 +1612,14 @@ function startClock() {
     }, 1000);
 }
 
+// Prevent accidental refresh or close when filling out form
+window.addEventListener('beforeunload', function (e) {
+    if (state.view === 'form' && !state.isSubmitting) {
+        e.preventDefault();
+        e.returnValue = ''; // Standard way to show prompt
+    }
+});
+
 // Bootstrap
 document.addEventListener('DOMContentLoaded', () => {
     initApp();

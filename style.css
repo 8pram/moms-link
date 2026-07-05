@@ -69,6 +69,7 @@ body {
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
+    overscroll-behavior-y: none; /* Mencegah pull-to-refresh di browser HP */
 }
 
 /* Soft Background Ornaments */
