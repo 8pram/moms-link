@@ -290,18 +290,20 @@ function renderHeader() {
                     ⏱️ --
                 </div>
             </div>
-            <div class="role-switcher" style="justify-content: flex-end; gap: 1rem;">
-                <span style="font-weight: 500; color: var(--text-secondary); display: flex; align-items: center;">
-                    Login sebagai: <span style="color: var(--text-main); font-weight: 700; margin-left: 0.5rem; padding: 0.25rem 0.75rem; background: var(--bg-main); border-radius: 20px; border: 1px solid var(--border-color);">${roleText}</span>
-                </span>
-                ${(state.role === 'superadmin' || state.role === 'dinkes') ? `
-                    <button class="btn-role" onclick="updateState({view: 'dashboard'})" style="${state.view === 'dashboard' ? 'background: #3b82f6; color: white;' : 'color: #3b82f6; border: 1px solid #3b82f6; background: rgba(59,130,246,0.1);'}">📊 Dashboard</button>
-                    <button class="btn-role" onclick="updateState({view: 'list', currentPage: 1})" style="${state.view === 'list' ? 'background: #3b82f6; color: white;' : 'color: #3b82f6; border: 1px solid #3b82f6; background: rgba(59,130,246,0.1);'}">📋 Daftar Pasien</button>
-                ` : ''}
-                ${state.role === 'superadmin' ? `<button class="btn-role" onclick="showAccountManager()" style="color: #3b82f6; border: 1px solid #3b82f6; background: rgba(59,130,246,0.1);">⚙️ Manajemen Akun</button>` : ''}
-                <button class="btn-role" onclick="exitApp()" style="color: #ef4444; border: 1px solid #ef4444; background: rgba(239,68,68,0.1);">
-                    🚪 Keluar
-                </button>
+            <div class="role-switcher" style="flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem;">
+                <div style="font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; width: 100%; margin-bottom: 0.25rem;">
+                    Login sebagai: <span style="color: var(--text-main); font-weight: 700; margin-left: 0.5rem; padding: 0.25rem 0.75rem; background: white; border-radius: 20px; border: 1px solid var(--gray-border);">${roleText}</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; width: 100%; justify-content: flex-start;">
+                    ${(state.role === 'superadmin' || state.role === 'dinkes') ? `
+                        <button class="btn-role" onclick="updateState({view: 'dashboard'})" style="${state.view === 'dashboard' ? 'background: #3b82f6; color: white;' : 'color: #3b82f6; border: 1px solid #3b82f6; background: rgba(59,130,246,0.1);'}">📊 Dashboard</button>
+                        <button class="btn-role" onclick="updateState({view: 'list', currentPage: 1})" style="${state.view === 'list' ? 'background: #3b82f6; color: white;' : 'color: #3b82f6; border: 1px solid #3b82f6; background: rgba(59,130,246,0.1);'}">📋 Daftar Pasien</button>
+                    ` : ''}
+                    ${state.role === 'superadmin' ? `<button class="btn-role" onclick="showAccountManager()" style="color: #3b82f6; border: 1px solid #3b82f6; background: rgba(59,130,246,0.1);">⚙️ Manajemen Akun</button>` : ''}
+                    <button class="btn-role" onclick="exitApp()" style="color: #ef4444; border: 1px solid #ef4444; background: rgba(239,68,68,0.1);">
+                        🚪 Keluar
+                    </button>
+                </div>
             </div>
         </div>
     `;
@@ -366,20 +368,20 @@ function renderList() {
                 nameCell += `<div style="margin-top: 4px;"><span class="badge warning" style="font-size: 0.7rem; background-color: #fee2e2; color: #ef4444; border: 1px solid #fca5a5;">Dirujuk ke: ${row.lokasi_rujukan_lanjutan}</span></div>`;
             }
 
-            let actionBtns = `<button class="btn-action ${state.role}" onclick="event.stopPropagation(); viewPatient('${row.no}')">Lihat Riwayat</button>`;
+            let actionBtns = '';
             if (state.role === 'superadmin') {
-                actionBtns += `<button class="btn-action" style="margin-left: 0.5rem; background-color: #fee2e2; color: #ef4444; border-color: #ef4444;" onclick="event.stopPropagation(); showRujukanModal('${row.no}')">Rujuk</button>`;
+                actionBtns += `<button class="btn-action" style="background-color: #fee2e2; color: #ef4444; border-color: #ef4444; padding: 0.5rem 1rem;" onclick="event.stopPropagation(); showRujukanModal('${row.no}')">Rujuk Pasien</button>`;
             }
 
             tableRows += `
-                <tr onclick="viewPatient('${row.no}')" style="cursor: pointer;" title="Klik untuk melihat riwayat lengkap">
-                    <td class="font-medium">${row.no}</td>
-                    <td>${nameCell}</td>
-                    <td>${tglLahirText}</td>
-                    <td><span class="badge">${perkembangan}</span></td>
-                    <td>${statusBadge}</td>
-                    <td>
-                        ${actionBtns}
+                <tr onclick="viewPatient('${row.no}')" class="patient-row" style="cursor: pointer;" title="Klik untuk melihat riwayat lengkap">
+                    <td data-label="No RM" class="font-medium" style="color: var(--rsud-primary);">${row.no}</td>
+                    <td data-label="Nama Pasien" style="font-weight: 600;">${nameCell}</td>
+                    <td data-label="Tgl Lahir">${tglLahirText}</td>
+                    <td data-label="Kondisi Terakhir"><span class="badge">${perkembangan}</span></td>
+                    <td data-label="Status">${statusBadge}</td>
+                    <td data-label="Aksi">
+                        ${actionBtns || '<span style="color: var(--text-tertiary); font-size: 0.8rem;">Klik kartu untuk detail ➔</span>'}
                     </td>
                 </tr>
             `;
