@@ -126,6 +126,29 @@ function formatForDateInput(dateStr) {
     return `${year}-${month}-${day}`;
 }
 
+window.calculateAgeString = function(dateStr) {
+    if (!dateStr) return '';
+    let d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    
+    let today = new Date();
+    d.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    let diffTime = today.getTime() - d.getTime();
+    if (diffTime < 0) return '0 Hari';
+    
+    let diffDays = Math.floor(diffTime / (1000 * 3600 * 24));
+    
+    if (diffDays < 30) {
+        return `${diffDays} Hari`;
+    } else {
+        const months = Math.floor(diffDays / 30);
+        const remainingDays = diffDays % 30;
+        return `${months} Bulan ${remainingDays > 0 ? remainingDays + ' Hari' : ''}`;
+    }
+}
+
 function handleInput(field, value, isCheckbox = false) {
     state.formData[field] = isCheckbox ? value === true : value;
 
@@ -410,8 +433,9 @@ function renderList() {
             }
 
             let tglLahirText = `<div style="white-space: nowrap;">${formatDateTime(row.tgl_lahir)}</div>`;
-            if (lastRecord.umur_bayi) {
-                tglLahirText += `<div style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; white-space: nowrap;">(${lastRecord.umur_bayi})</div>`;
+            let calculatedAge = row.tgl_lahir ? window.calculateAgeString(row.tgl_lahir) : lastRecord.umur_bayi;
+            if (calculatedAge) {
+                tglLahirText += `<div style="color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; white-space: nowrap;">(${calculatedAge})</div>`;
             }
 
             let nameCell = `<div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${row.nama_pasien}</div>`;
@@ -761,6 +785,9 @@ function renderForm() {
         if (f.kecamatan_bidan_pj) {
             if (window.updateDesaList) window.updateDesaList(f.kecamatan_bidan_pj);
         }
+        if (f.kecamatan_bidan) {
+            if (window.updateDesaListBidan) window.updateDesaListBidan(f.kecamatan_bidan);
+        }
 
         // Initialize flatpickr
         if (typeof flatpickr !== 'undefined') {
@@ -810,7 +837,9 @@ function renderForm() {
                             ${createInput('No. Register', 'no_register', 'text', f.no_register, null, lockTahap1_2, 'Nomor Register...')}
                             ${createInput('Jenis Kelamin', 'jenis_kelamin', 'text', f.jenis_kelamin, ['Perempuan (P)', 'Laki-laki (L)', 'Ambiguous Genitalia'], lockTahap1_2)}
                             ${createInput('Umur Bayi', 'umur_bayi', 'text', f.umur_bayi, null, lockTahap1_2, 'Dalam hari/bulan...')}
-                            ${createInput('Tanggal & Jam Kunjungan ke RS', 'tgl_kunjungan_rs', 'datetime-local', formatForDateTimeInput(f.tgl_kunjungan_rs), null, lockTahap1_3)}
+                            <div style="pointer-events: auto;">
+                                ${createInput('Tanggal & Jam Kunjungan ke RS', 'tgl_kunjungan_rs', 'datetime-local', formatForDateTimeInput(f.tgl_kunjungan_rs), null, lockTahap1_3)}
+                            </div>
                             ${createInput('Kelainan Kongenital', 'kelainan_kongenital', 'text', f.kelainan_kongenital, null, lockTahap1_2, 'Ada/Tidak, sebutkan...')}
                         </div>
                     </div>
@@ -856,7 +885,7 @@ function renderForm() {
                                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
                                     ${createInput('Kabupaten Bidan PJ', 'kabupaten_bidan_pj', 'text', f.kabupaten_bidan_pj, null, lockTahap1_3, 'Pasuruan')}
                                     ${createInput('Kecamatan Bidan PJ', 'kecamatan_bidan_pj', 'text', f.kecamatan_bidan_pj, null, lockTahap1_3, 'Pilih Kecamatan...', 'list="list-kecamatan" oninput="window.updateDesaList(this.value)"')}
-                                    ${createInput('Desa Bidan PJ', 'desa_bidan_pj', 'text', f.desa_bidan_pj, null, lockTahap1_3, 'Pilih Desa...', 'list="list-desa"')}
+                                    ${createInput('Desa Bidan PJ', 'desa_bidan_pj', 'text', f.desa_bidan_pj, null, lockTahap1_3, 'Pilih Desa (Opsional)...', 'list="list-desa-pj"')}
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
                                     ${createInput('Nama Bidan PJ', 'nama_bidan_pj', 'text', f.nama_bidan_pj, null, lockTahap1_3, 'Nama Bidan...')}
@@ -940,7 +969,12 @@ function renderForm() {
 
                             <div class="col-span-full border-top">
                                 <label class="form-label mb-2 block" style="color: var(--bidan-primary);">👤 Identitas Bidan Pemantau</label>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                                    ${createInput('Kabupaten Bidan Pemantau', 'kabupaten_bidan', 'text', f.kabupaten_bidan, null, lockTahap5, 'Pasuruan')}
+                                    ${createInput('Kecamatan Bidan Pemantau', 'kecamatan_bidan', 'text', f.kecamatan_bidan, null, lockTahap5, 'Pilih Kecamatan...', 'list="list-kecamatan" oninput="window.updateDesaListBidan(this.value)"')}
+                                    ${createInput('Desa Bidan Pemantau', 'desa_bidan', 'text', f.desa_bidan, null, lockTahap5, 'Pilih Desa...', 'list="list-desa-pemantau"')}
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
                                     ${createInput('Nama Bidan Pemantau', 'nama_bidan', 'text', f.nama_bidan, null, lockTahap5, 'Nama Bidan...', 'list="list-bidan" oninput="autofillContact(\\\'bidan\\\', this.value)"')}
                                     ${createInput('No. WhatsApp (Contoh: 081234...)', 'kontak_bidan', 'text', f.kontak_bidan, null, lockTahap5, '08...')}
                                 </div>
@@ -955,13 +989,22 @@ function renderForm() {
                 </div>
             </form>
             <datalist id="list-kecamatan"></datalist>
-            <datalist id="list-desa"></datalist>
+            <datalist id="list-desa-pj"></datalist>
+            <datalist id="list-desa-pemantau"></datalist>
         </div>
     `;
 }
 
 window.updateDesaList = function(kecamatan) {
-    const dl = document.getElementById('list-desa');
+    const dl = document.getElementById('list-desa-pj');
+    dl.innerHTML = '';
+    if (typeof WILAYAH_PASURUAN !== 'undefined' && WILAYAH_PASURUAN[kecamatan]) {
+        dl.innerHTML = WILAYAH_PASURUAN[kecamatan].sort().map(d => `<option value="${d}">`).join('');
+    }
+};
+
+window.updateDesaListBidan = function(kecamatan) {
+    const dl = document.getElementById('list-desa-pemantau');
     dl.innerHTML = '';
     if (typeof WILAYAH_PASURUAN !== 'undefined' && WILAYAH_PASURUAN[kecamatan]) {
         dl.innerHTML = WILAYAH_PASURUAN[kecamatan].sort().map(d => `<option value="${d}">`).join('');
@@ -1179,7 +1222,7 @@ window.submitForm = async function (e) {
     // Validation
     const form = e.target;
     const inputs = form.querySelectorAll('input:not([type="file"]):not([disabled]):not([type="checkbox"]), select:not([disabled]), textarea:not([disabled])');
-    const optionalFields = ['kelainan_kongenital', 'indikasi_ibu', 'diagnosa_rujukan', 'terapi_lain', 'tanda_kegawatan', 'tindakan_kegawatan'];
+    const optionalFields = ['kelainan_kongenital', 'indikasi_ibu', 'diagnosa_rujukan', 'terapi_lain', 'tanda_kegawatan', 'tindakan_kegawatan', 'desa_bidan_pj'];
     let hasError = false;
 
     inputs.forEach(input => {
