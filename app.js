@@ -421,15 +421,15 @@ function renderList() {
             if (state.role === 'superadmin' || state.role === 'dinkes') {
                 let contactsHtml = `<div style="margin-top: 6px; font-size: 0.65rem; color: #4b5563; display: flex; flex-direction: column; gap: 4px;">`;
                 if (lastRecord.nama_bidan_pj && lastRecord.kontak_bidan_pj) {
-                    const wa1 = lastRecord.kontak_bidan_pj.replace(/^0/, '62');
+                    const wa1 = String(lastRecord.kontak_bidan_pj).replace(/^0/, '62');
                     contactsHtml += `<a href="https://wa.me/${wa1}" target="_blank" onclick="event.stopPropagation()" style="color:#10b981; text-decoration:none; display:flex; align-items:center; gap:4px;">💬 PJ: ${lastRecord.nama_bidan_pj}</a>`;
                 }
                 if (lastRecord.nama_petugas_rs && lastRecord.kontak_petugas_rs) {
-                    const wa2 = lastRecord.kontak_petugas_rs.replace(/^0/, '62');
+                    const wa2 = String(lastRecord.kontak_petugas_rs).replace(/^0/, '62');
                     contactsHtml += `<a href="https://wa.me/${wa2}" target="_blank" onclick="event.stopPropagation()" style="color:#3b82f6; text-decoration:none; display:flex; align-items:center; gap:4px;">💬 RS: ${lastRecord.nama_petugas_rs}</a>`;
                 }
                 if (lastRecord.nama_bidan && lastRecord.kontak_bidan) {
-                    const wa3 = lastRecord.kontak_bidan.replace(/^0/, '62');
+                    const wa3 = String(lastRecord.kontak_bidan).replace(/^0/, '62');
                     contactsHtml += `<a href="https://wa.me/${wa3}" target="_blank" onclick="event.stopPropagation()" style="color:#ec4899; text-decoration:none; display:flex; align-items:center; gap:4px;">💬 Pantau: ${lastRecord.nama_bidan}</a>`;
                 }
                 contactsHtml += `</div>`;
@@ -438,7 +438,7 @@ function renderList() {
                 }
             } else {
                 if (row.status_akhir === 'Sembuh' && lastRecord.nama_bidan_pj) {
-                    const waNumber = lastRecord.kontak_bidan_pj.replace(/^0/, '62');
+                    const waNumber = String(lastRecord.kontak_bidan_pj).replace(/^0/, '62');
                     nameCell += `<div style="margin-top: 4px; font-size: 0.7rem; color: #4b5563;">
                         <div style="font-weight:600; color:var(--bidan-primary)">PJ: Bidan ${lastRecord.nama_bidan_pj}</div>
                         <div>${lastRecord.desa_bidan_pj}, Kec. ${lastRecord.kecamatan_bidan_pj}</div>
@@ -694,7 +694,8 @@ function createInput(label, id, type = 'text', value, options = null, disabled =
         inputHTML = `<textarea class="form-input" id="${id}" placeholder="${placeholder}" ${disabledAttr} ${extraAttrs} onchange="handleInput('${id}', this.value)" rows="5" style="resize: vertical; font-family: inherit;">${valAttr}</textarea>`;
     } else {
         const valAttr = value ? `value="${value}"` : '';
-        inputHTML = `<input class="form-input" type="${type}" id="${id}" ${valAttr} placeholder="${placeholder}" ${disabledAttr} ${extraAttrs} onchange="handleInput('${id}', this.value)">`;
+        const fpClass = type === 'date' ? 'fp-date' : (type === 'datetime-local' ? 'fp-datetime' : '');
+        inputHTML = `<input class="form-input ${fpClass}" type="${type}" id="${id}" ${valAttr} placeholder="${placeholder}" ${disabledAttr} ${extraAttrs} onchange="handleInput('${id}', this.value)">`;
     }
     const wrapperClass = type === 'textarea' ? 'form-group col-span-full' : 'form-group';
     return `<div class="${wrapperClass}"><label class="form-label">${label}</label>${inputHTML}</div>`;
@@ -738,6 +739,7 @@ function renderForm() {
     const isDinkes = state.role === 'dinkes';
 
     const lockTahap1_3 = (!['fktp', 'superadmin'].includes(state.role)) && !state.isPerburukan;
+    const lockTahap1_2 = lockTahap1_3 || state.isPerburukan;
     const lockTahap4 = !['rsud', 'superadmin'].includes(state.role);
     const lockTahap5 = (!['bidan', 'superadmin'].includes(state.role)) || state.isPerburukan;
     const f = state.formData;
@@ -747,6 +749,38 @@ function renderForm() {
 
     const datalistPetugasRS = [...new Set(state.records.map(r => r.nama_petugas_rs).filter(v => v))];
     const datalistBidan = [...new Set(state.records.map(r => r.nama_bidan).filter(v => v))];
+
+    setTimeout(() => {
+        // Initialize datalist for kecamatan
+        if (typeof WILAYAH_PASURUAN !== 'undefined') {
+            const dl = document.getElementById('list-kecamatan');
+            if (dl) dl.innerHTML = Object.keys(WILAYAH_PASURUAN).sort().map(k => `<option value="${k}">`).join('');
+        }
+        
+        // Initialize desa if kecamatan is already filled
+        if (f.kecamatan_bidan_pj) {
+            if (window.updateDesaList) window.updateDesaList(f.kecamatan_bidan_pj);
+        }
+
+        // Initialize flatpickr
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr("input[type=datetime-local]", {
+                enableTime: true,
+                dateFormat: "Y-m-d\\TH:i",
+                altInput: true,
+                altFormat: "d/m/Y H:i",
+                time_24hr: true,
+                allowInput: true
+            });
+            flatpickr("input[type=date]", {
+                enableTime: false,
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                allowInput: true
+            });
+        }
+    }, 100);
 
     return `
         <div class="fade-in">
@@ -767,32 +801,32 @@ function renderForm() {
                 <!-- SECTION RSUD (1-4) -->
                 <div>
                     <!-- TAHAP 1 -->
-                    <div class="form-card ${lockTahap1_3 ? 'readonly-section' : ''}">
-                        <div class="card-header ${lockTahap1_3 ? 'theme-gray' : 'theme-blue'}">📋 1. Identitas Pasien & Register (RSUD)</div>
+                    <div class="form-card ${lockTahap1_2 ? 'readonly-section' : ''}">
+                        <div class="card-header ${lockTahap1_2 ? 'theme-gray' : 'theme-blue'}">📋 1. Identitas Pasien & Register (RSUD)</div>
                         <div class="card-body">
-                            ${createInput('No. Urut / RM', 'no', 'text', f.no, null, lockTahap1_3 || f.no !== '', 'Nomor urut...')}
-                            ${createInput('Nama Pasien Bayi', 'nama_pasien', 'text', f.nama_pasien, null, lockTahap1_3, 'Nama lengkap...')}
-                            ${createInput('Tanggal Lahir', 'tgl_lahir', 'date', formatForDateInput(f.tgl_lahir), null, lockTahap1_3)}
-                            ${createInput('No. Register', 'no_register', 'text', f.no_register, null, lockTahap1_3, 'Nomor Register...')}
-                            ${createInput('Jenis Kelamin', 'jenis_kelamin', 'text', f.jenis_kelamin, ['Perempuan (P)', 'Laki-laki (L)', 'Ambiguous Genitalia'], lockTahap1_3)}
-                            ${createInput('Umur Bayi', 'umur_bayi', 'text', f.umur_bayi, null, lockTahap1_3, 'Dalam hari/bulan...')}
+                            ${createInput('No. Urut / RM', 'no', 'text', f.no, null, lockTahap1_2 || f.no !== '', 'Nomor urut...')}
+                            ${createInput('Nama Pasien Bayi', 'nama_pasien', 'text', f.nama_pasien, null, lockTahap1_2, 'Nama lengkap...')}
+                            ${createInput('Tanggal Lahir', 'tgl_lahir', 'date', formatForDateInput(f.tgl_lahir), null, lockTahap1_2)}
+                            ${createInput('No. Register', 'no_register', 'text', f.no_register, null, lockTahap1_2, 'Nomor Register...')}
+                            ${createInput('Jenis Kelamin', 'jenis_kelamin', 'text', f.jenis_kelamin, ['Perempuan (P)', 'Laki-laki (L)', 'Ambiguous Genitalia'], lockTahap1_2)}
+                            ${createInput('Umur Bayi', 'umur_bayi', 'text', f.umur_bayi, null, lockTahap1_2, 'Dalam hari/bulan...')}
                             ${createInput('Tanggal & Jam Kunjungan ke RS', 'tgl_kunjungan_rs', 'datetime-local', formatForDateTimeInput(f.tgl_kunjungan_rs), null, lockTahap1_3)}
-                            ${createInput('Kelainan Kongenital', 'kelainan_kongenital', 'text', f.kelainan_kongenital, null, lockTahap1_3, 'Ada/Tidak, sebutkan...')}
+                            ${createInput('Kelainan Kongenital', 'kelainan_kongenital', 'text', f.kelainan_kongenital, null, lockTahap1_2, 'Ada/Tidak, sebutkan...')}
                         </div>
                     </div>
 
                     <!-- TAHAP 2 -->
-                    <div class="form-card ${lockTahap1_3 ? 'readonly-section' : ''}">
-                        <div class="card-header ${lockTahap1_3 ? 'theme-gray' : 'theme-blue'}">👶 2. Riwayat Kehamilan & Persalinan</div>
+                    <div class="form-card ${lockTahap1_2 ? 'readonly-section' : ''}">
+                        <div class="card-header ${lockTahap1_2 ? 'theme-gray' : 'theme-blue'}">👶 2. Riwayat Kehamilan & Persalinan</div>
                         <div class="card-body">
-                            ${createInput('Umur Kehamilan (Minggu)', 'umur_kehamilan', 'text', f.umur_kehamilan, ['< 28', '28 - <32', '32 - <34', '34 - <37', '> 37'], lockTahap1_3)}
-                            ${createInput('Berat Badan Lahir (Gram)', 'bb_lahir', 'text', f.bb_lahir, ['< 1000', '>1000 - 1500', '>1500 - 2000', '>2000 - 2500', '> 2500'], lockTahap1_3)}
-                            ${createInput('Hamil Ke-', 'hamil_ke', 'number', f.hamil_ke, null, lockTahap1_3, '1, 2, 3...')}
-                            ${createInput('Jenis Kehamilan', 'jenis_kehamilan', 'text', f.jenis_kehamilan, ['Tunggal', 'Ganda'], lockTahap1_3)}
-                            ${createInput('Cara Lahir', 'cara_lahir', 'text', f.cara_lahir, ['SPT', 'VACUM', 'FORCEP', 'SC', 'LAIN-LAIN'], lockTahap1_3)}
-                            ${createInput('Indikasi Ibu', 'indikasi_ibu', 'text', f.indikasi_ibu, null, lockTahap1_3, 'Indikasi...')}
-                            ${createInput('Apgar Score', 'apgar_score', 'text', f.apgar_score, null, lockTahap1_3, 'Contoh: 8/9')}
-                            ${createInput('Mendapat Resusitasi', 'mendapat_resusitasi', 'text', f.mendapat_resusitasi, ['YA', 'TIDAK'], lockTahap1_3)}
+                            ${createInput('Umur Kehamilan (Minggu)', 'umur_kehamilan', 'text', f.umur_kehamilan, ['< 28', '28 - <32', '32 - <34', '34 - <37', '> 37'], lockTahap1_2)}
+                            ${createInput('Berat Badan Lahir (Gram)', 'bb_lahir', 'text', f.bb_lahir, ['< 1000', '>1000 - 1500', '>1500 - 2000', '>2000 - 2500', '> 2500'], lockTahap1_2)}
+                            ${createInput('Hamil Ke-', 'hamil_ke', 'number', f.hamil_ke, null, lockTahap1_2, '1, 2, 3...')}
+                            ${createInput('Jenis Kehamilan', 'jenis_kehamilan', 'text', f.jenis_kehamilan, ['Tunggal', 'Ganda'], lockTahap1_2)}
+                            ${createInput('Cara Lahir', 'cara_lahir', 'text', f.cara_lahir, ['SPT', 'VACUM', 'FORCEP', 'SC', 'LAIN-LAIN'], lockTahap1_2)}
+                            ${createInput('Indikasi Ibu', 'indikasi_ibu', 'text', f.indikasi_ibu, null, lockTahap1_2, 'Indikasi...')}
+                            ${createInput('Apgar Score', 'apgar_score', 'text', f.apgar_score, null, lockTahap1_2, 'Contoh: 8/9')}
+                            ${createInput('Mendapat Resusitasi', 'mendapat_resusitasi', 'text', f.mendapat_resusitasi, ['YA', 'TIDAK'], lockTahap1_2)}
                         </div>
                     </div>
 
@@ -924,29 +958,6 @@ function renderForm() {
             <datalist id="list-desa"></datalist>
         </div>
     `;
-
-    setTimeout(() => {
-        // Initialize datalist for kecamatan
-        if (typeof WILAYAH_PASURUAN !== 'undefined') {
-            const dl = document.getElementById('list-kecamatan');
-            dl.innerHTML = Object.keys(WILAYAH_PASURUAN).sort().map(k => `<option value="${k}">`).join('');
-        }
-        
-        // Initialize desa if kecamatan is already filled
-        if (f.kecamatan_bidan_pj) {
-            window.updateDesaList(f.kecamatan_bidan_pj);
-        }
-
-        // Initialize flatpickr on datetime-local inputs
-        if (typeof flatpickr !== 'undefined') {
-            flatpickr("input[type=datetime-local]", {
-                enableTime: true,
-                dateFormat: "d/m/Y H:i",
-                time_24hr: true,
-                allowInput: true
-            });
-        }
-    }, 100);
 }
 
 window.updateDesaList = function(kecamatan) {
