@@ -37,7 +37,8 @@ const emptyForm = {
     foto_bidan_1: '', foto_bidan_1_name: '', foto_bidan_1_type: '',
     foto_bidan_2: '', foto_bidan_2_name: '', foto_bidan_2_type: '',
     nama_petugas_rs: '', kontak_petugas_rs: '', nama_bidan: '', kontak_bidan: '',
-    is_dirujuk: false, lokasi_rujukan_lanjutan: '', status_akhir_superadmin: ''
+    is_dirujuk: false, lokasi_rujukan_lanjutan: '', status_akhir_superadmin: '',
+    kabupaten_bidan_pj: 'Pasuruan', kecamatan_bidan_pj: '', desa_bidan_pj: '', nama_bidan_pj: '', kontak_bidan_pj: ''
 };
 
 // --- 2. UTILITY FUNCTIONS ---
@@ -363,9 +364,19 @@ function renderList() {
     // Filter Role Berdasarkan Status Akhir
     if (state.role === 'faskes_rujukan') {
         filtered = filtered.filter(p => p.status_akhir === 'Dirujuk' || p.is_dirujuk === true);
-    } else if (state.role === 'fktp' || state.role === 'rsud') {
-        // FKTP dan RSUD melihat pasien yang masih dirawat (belum Sembuh/Dirujuk/Meninggal)
+    } else if (state.role === 'rsud') {
+        // RSUD melihat pasien yang masih dirawat (belum Sembuh/Dirujuk/Meninggal)
         filtered = filtered.filter(p => !p.status_akhir || p.status_akhir === '');
+    } else if (state.role === 'fktp') {
+        // FKTP hanya melihat pasien yang belum diisi Tahap 4 oleh RSUD
+        filtered = filtered.filter(p => {
+            if (p.status_akhir && p.status_akhir !== '') return false;
+            const lastRecord = p.history[p.history.length - 1];
+            if (!lastRecord) return false;
+            // Jika salah satu field Tahap 4 ini sudah terisi, berarti RSUD sudah menangani
+            const hasTahap4 = lastRecord.diagnosa_awal || lastRecord.nama_petugas_rs || lastRecord.kondisi_krs;
+            return !hasTahap4;
+        });
     } else if (state.role === 'bidan') {
         // Bidan Desa melihat pasien yang sudah Sembuh untuk di pantau
         filtered = filtered.filter(p => p.status_akhir === 'Sembuh');
@@ -406,6 +417,34 @@ function renderList() {
             let nameCell = `<div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${row.nama_pasien}</div>`;
             if (row.is_dirujuk) {
                 nameCell += `<div style="margin-top: 2px;"><span class="badge warning" style="font-size: 0.65rem; background-color: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; display: inline-block;">Dirujuk ke: ${row.lokasi_rujukan_lanjutan}</span></div>`;
+            }
+            if (state.role === 'superadmin' || state.role === 'dinkes') {
+                let contactsHtml = `<div style="margin-top: 6px; font-size: 0.65rem; color: #4b5563; display: flex; flex-direction: column; gap: 4px;">`;
+                if (lastRecord.nama_bidan_pj && lastRecord.kontak_bidan_pj) {
+                    const wa1 = lastRecord.kontak_bidan_pj.replace(/^0/, '62');
+                    contactsHtml += `<a href="https://wa.me/${wa1}" target="_blank" onclick="event.stopPropagation()" style="color:#10b981; text-decoration:none; display:flex; align-items:center; gap:4px;">💬 PJ: ${lastRecord.nama_bidan_pj}</a>`;
+                }
+                if (lastRecord.nama_petugas_rs && lastRecord.kontak_petugas_rs) {
+                    const wa2 = lastRecord.kontak_petugas_rs.replace(/^0/, '62');
+                    contactsHtml += `<a href="https://wa.me/${wa2}" target="_blank" onclick="event.stopPropagation()" style="color:#3b82f6; text-decoration:none; display:flex; align-items:center; gap:4px;">💬 RS: ${lastRecord.nama_petugas_rs}</a>`;
+                }
+                if (lastRecord.nama_bidan && lastRecord.kontak_bidan) {
+                    const wa3 = lastRecord.kontak_bidan.replace(/^0/, '62');
+                    contactsHtml += `<a href="https://wa.me/${wa3}" target="_blank" onclick="event.stopPropagation()" style="color:#ec4899; text-decoration:none; display:flex; align-items:center; gap:4px;">💬 Pantau: ${lastRecord.nama_bidan}</a>`;
+                }
+                contactsHtml += `</div>`;
+                if (contactsHtml.includes('<a')) {
+                    nameCell += contactsHtml;
+                }
+            } else {
+                if (row.status_akhir === 'Sembuh' && lastRecord.nama_bidan_pj) {
+                    const waNumber = lastRecord.kontak_bidan_pj.replace(/^0/, '62');
+                    nameCell += `<div style="margin-top: 4px; font-size: 0.7rem; color: #4b5563;">
+                        <div style="font-weight:600; color:var(--bidan-primary)">PJ: Bidan ${lastRecord.nama_bidan_pj}</div>
+                        <div>${lastRecord.desa_bidan_pj}, Kec. ${lastRecord.kecamatan_bidan_pj}</div>
+                        <a href="https://wa.me/${waNumber}" target="_blank" onclick="event.stopPropagation()" style="color:#10b981; text-decoration:none;">💬 WA: ${lastRecord.kontak_bidan_pj}</a>
+                    </div>`;
+                }
             }
 
             let actionBtns = '';
@@ -777,6 +816,19 @@ function renderForm() {
                                 </div>
                             </div>
                             ${createInput('Obat Lainnya', 'terapi_lain', 'textarea', f.terapi_lain, null, lockTahap1_3, 'Obat Lain...')}
+                            
+                            <div class="col-span-full border-top">
+                                <label class="form-label mb-2 block" style="color: var(--bidan-primary);">👤 Penanggung Jawab Pemantauan (Bidan Desa)</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                                    ${createInput('Kabupaten Bidan PJ', 'kabupaten_bidan_pj', 'text', f.kabupaten_bidan_pj, null, lockTahap1_3, 'Pasuruan')}
+                                    ${createInput('Kecamatan Bidan PJ', 'kecamatan_bidan_pj', 'text', f.kecamatan_bidan_pj, null, lockTahap1_3, 'Pilih Kecamatan...', 'list="list-kecamatan" oninput="window.updateDesaList(this.value)"')}
+                                    ${createInput('Desa Bidan PJ', 'desa_bidan_pj', 'text', f.desa_bidan_pj, null, lockTahap1_3, 'Pilih Desa...', 'list="list-desa"')}
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                                    ${createInput('Nama Bidan PJ', 'nama_bidan_pj', 'text', f.nama_bidan_pj, null, lockTahap1_3, 'Nama Bidan...')}
+                                    ${createInput('No. WhatsApp (Contoh: 081234...)', 'kontak_bidan_pj', 'text', f.kontak_bidan_pj, null, lockTahap1_3, '08...')}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -868,9 +920,42 @@ function renderForm() {
                     ${!isDinkes ? `<button type="submit" class="btn-submit ${state.role}" ${state.isSubmitting ? 'disabled' : ''}>💾 SIMPAN DATA</button>` : ''}
                 </div>
             </form>
+            <datalist id="list-kecamatan"></datalist>
+            <datalist id="list-desa"></datalist>
         </div>
     `;
+
+    setTimeout(() => {
+        // Initialize datalist for kecamatan
+        if (typeof WILAYAH_PASURUAN !== 'undefined') {
+            const dl = document.getElementById('list-kecamatan');
+            dl.innerHTML = Object.keys(WILAYAH_PASURUAN).sort().map(k => `<option value="${k}">`).join('');
+        }
+        
+        // Initialize desa if kecamatan is already filled
+        if (f.kecamatan_bidan_pj) {
+            window.updateDesaList(f.kecamatan_bidan_pj);
+        }
+
+        // Initialize flatpickr on datetime-local inputs
+        if (typeof flatpickr !== 'undefined') {
+            flatpickr("input[type=datetime-local]", {
+                enableTime: true,
+                dateFormat: "d/m/Y H:i",
+                time_24hr: true,
+                allowInput: true
+            });
+        }
+    }, 100);
 }
+
+window.updateDesaList = function(kecamatan) {
+    const dl = document.getElementById('list-desa');
+    dl.innerHTML = '';
+    if (typeof WILAYAH_PASURUAN !== 'undefined' && WILAYAH_PASURUAN[kecamatan]) {
+        dl.innerHTML = WILAYAH_PASURUAN[kecamatan].sort().map(d => `<option value="${d}">`).join('');
+    }
+};
 
 // --- 5. EVENT HANDLERS ---
 window.newPatient = function () {
