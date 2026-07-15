@@ -42,8 +42,15 @@ const emptyForm = {
 };
 
 // --- 2. UTILITY FUNCTIONS ---
-function updateState(newState) {
+function updateState(newState, pushHistory = true) {
+    const previousView = state.view;
     Object.assign(state, newState);
+    
+    // Mencegah aplikasi keluar saat tombol back ditekan dengan memanipulasi history browser
+    if (pushHistory && newState.view && newState.view !== previousView && state.view !== 'login') {
+        history.pushState({ view: state.view, selectedRm: state.selectedRm }, "");
+    }
+    
     renderApp();
 }
 
@@ -114,6 +121,22 @@ window.showAlertModal = function (icon, title, message, callback = null) {
         document.getElementById('custom-alert-modal').remove();
         if (callback) callback();
     };
+};
+
+window.showPhotoModal = function (url) {
+    const modalHtml = `
+        <div id="photo-modal" class="modal-overlay fade-in" style="z-index: 10000; flex-direction: column; background: rgba(0,0,0,0.9);">
+            <div style="width: 100%; padding: 1.5rem; display: flex; justify-content: flex-start; position: absolute; top: 0; left: 0; z-index: 10001;">
+                <button class="btn-cancel" onclick="document.getElementById('photo-modal').remove()" style="background: white; border-radius: 50%; width: 45px; height: 45px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: none; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    <svg width="24" height="24" fill="none" stroke="#333" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </button>
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 1rem; width: 100%; height: 100%;">
+                <img src="${url}" style="max-width: 95vw; max-height: 95vh; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 };
 
 function formatForDateInput(dateStr) {
@@ -601,9 +624,9 @@ function renderPatientDetail() {
                 </div>
             `;
             if (h.foto_rs_1 || h.foto_rs_2) {
-                rsudSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem;">`;
-                if (h.foto_rs_1) rsudSection += `<img src="${h.foto_rs_1}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_rs_1}')">`;
-                if (h.foto_rs_2) rsudSection += `<img src="${h.foto_rs_2}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_rs_2}')">`;
+                rsudSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">`;
+                if (h.foto_rs_1) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_1}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_rs_1}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
+                if (h.foto_rs_2) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_2}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_rs_2}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
                 rsudSection += `</div>`;
             }
             if (h.nama_petugas_rs || h.kontak_petugas_rs) {
@@ -636,9 +659,9 @@ function renderPatientDetail() {
                 </div>
             `;
             if (h.foto_bidan_1 || h.foto_bidan_2) {
-                bidanSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem;">`;
-                if (h.foto_bidan_1) bidanSection += `<img src="${h.foto_bidan_1}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_bidan_1}')">`;
-                if (h.foto_bidan_2) bidanSection += `<img src="${h.foto_bidan_2}" style="width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid #ccc; cursor:pointer;" onclick="window.open('${h.foto_bidan_2}')">`;
+                bidanSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">`;
+                if (h.foto_bidan_1) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_1}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_bidan_1}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
+                if (h.foto_bidan_2) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_2}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_bidan_2}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
                 bidanSection += `</div>`;
             }
             if (h.nama_bidan || h.kontak_bidan) {
@@ -1886,6 +1909,27 @@ window.addEventListener('beforeunload', function (e) {
     if (state.view === 'form' && !state.isSubmitting) {
         e.preventDefault();
         e.returnValue = ''; // Standard way to show prompt
+    }
+});
+
+// Handle Native Back Button (Hardware Back) di HP
+window.addEventListener('popstate', function (event) {
+    if (state.view === 'form' && !state.isSubmitting) {
+        const confirmMsg = "Anda sedang mengisi data yang belum tersimpan. Yakin ingin membatalkan input dan kembali?";
+        if (!confirm(confirmMsg)) {
+            // Membatalkan tombol back dengan menekan state form kembali
+            history.pushState({ view: 'form', selectedRm: state.selectedRm }, "");
+            return;
+        }
+    }
+    
+    if (event.state && event.state.view) {
+        updateState({ view: event.state.view, selectedRm: event.state.selectedRm || null }, false);
+    } else {
+        // Fallback jika state hilang tapi tidak di login
+        if (state.role && state.view !== 'login') {
+            updateState({ view: 'list' }, false);
+        }
     }
 });
 

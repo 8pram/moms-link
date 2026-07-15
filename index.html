@@ -2,76 +2,76 @@
 <html lang="id">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEO-LINK GRATI | Kab. Pasuruan</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEO-LINK GRATI | Kab. Pasuruan</title>
 
-    <!-- PWA Meta Tags & Manifest -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0d6efd">
-    <link rel="apple-touch-icon" href="icon.svg">
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+  <link rel="apple-touch-icon" href="icon.svg">
 
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Custom Vanilla CSS -->
-    <link rel="stylesheet" href="style.css">
+  <!-- Custom Vanilla CSS -->
+  <link rel="stylesheet" href="style.css">
 
-    <!-- Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <!-- Flatpickr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
-    <!-- Export Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Export Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-    <!-- Splash Screen -->
-    <div id="splash-screen" class="splash-screen">
-        <div class="splash-content">
-            <div class="splash-logos">
-                <img src="https://drive.google.com/thumbnail?id=1Ak5zTGeOQeP-j8cRhJRIZ6anUGUFiUh5&sz=w400"
-                    alt="Logo Pasuruan" class="splash-logo">
-                <img src="https://drive.google.com/thumbnail?id=15ykUI6pXWimcc46iYCEgOkY3ADV6u2kI&sz=w400"
-                    alt="Logo RSUD Grati" class="splash-logo">
-            </div>
-            <h1 class="splash-title">NEO-LINK GRATI</h1>
-            <p class="splash-subtitle">NEOnatal Online Monitoring System - LINK RSUD GRATI</p>
-            <div class="splash-loader"></div>
-            <p class="splash-credit">Pemerintah Kabupaten Pasuruan bersama RSUD Grati & Dinas Kesehatan</p>
-            <div class="designer-credit">design by <a href="https://wa.me/6281233249944" target="_blank"
-                    style="color: inherit; text-decoration: none;">nox86</a></div>
-        </div>
+  <!-- Splash Screen -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="splash-content">
+      <div class="splash-logos">
+        <img src="https://drive.google.com/thumbnail?id=1Ak5zTGeOQeP-j8cRhJRIZ6anUGUFiUh5&sz=w400" alt="Logo Pasuruan"
+          class="splash-logo">
+        <img src="https://drive.google.com/thumbnail?id=15ykUI6pXWimcc46iYCEgOkY3ADV6u2kI&sz=w400" alt="Logo RSUD Grati"
+          class="splash-logo">
+      </div>
+      <h1 class="splash-title">NEO-LINK GRATI</h1>
+      <p class="splash-subtitle">NEOnatal Online Monitoring System - LINK RSUD GRATI</p>
+      <div class="splash-loader"></div>
+      <p class="splash-credit">Pemerintah Kabupaten Pasuruan bersama RSUD Grati & Dinas Kesehatan</p>
+      <div class="designer-credit">design by <a href="https://wa.me/6281233249944" target="_blank"
+          style="color: inherit; text-decoration: none;">nox86</a></div>
     </div>
+  </div>
 
-    <!-- Main App Container -->
-    <div id="app" class="app-container"></div>
+  <!-- Main App Container -->
+  <div id="app" class="app-container"></div>
 
-    <!-- Application Logic -->
-    <script src="wilayah_pasuruan.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="app.js"></script>
+  <!-- Application Logic -->
+  <script src="wilayah_pasuruan.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="app.js"></script>
 
-    <!-- PWA Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(registration => {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            }, err => {
-              console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-      }
-    </script>
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+  </script>
 </body>
 
 </html>
