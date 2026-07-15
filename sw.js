@@ -1,12 +1,12 @@
-const CACHE_NAME = 'neo-link-v1';
+const CACHE_NAME = 'neo-link-v2';
 const urlsToCache = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './wilayah_pasuruan.js',
-  './icon.svg',
-  './manifest.json'
+  './icon.png?v=2',
+  './manifest.json?v=2'
 ];
 
 self.addEventListener('install', event => {

@@ -58,12 +58,19 @@ function updateState(newState, pushHistory = true) {
     renderApp();
 }
 
-function getDriveEmbedUrl(url) {
+function getDriveEmbedUrl(url, fullRes = false) {
     if (!url) return '';
-    if (url.includes('thumbnail') || url.includes('uc?id=')) return url;
+    if (url.includes('thumbnail') || url.includes('uc?id=')) {
+        if (fullRes && url.includes('sz=')) {
+            return url.replace(/sz=w\d+/, 'sz=w2500');
+        } else if (!fullRes && url.includes('sz=')) {
+            return url.replace(/sz=w\d+/, 'sz=w800');
+        }
+        return url;
+    }
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match && match[1]) {
-        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w800`;
+        return `https://drive.google.com/thumbnail?id=${match[1]}&sz=${fullRes ? 'w2500' : 'w800'}`;
     }
     return url;
 }
@@ -137,9 +144,9 @@ window.showAlertModal = function (icon, title, message, callback = null) {
     };
 };
 
-window.showPhotoModal = function (url) {
+window.showPhotoModal = function (url, fullRes = false) {
     if (!url) return;
-    url = getDriveEmbedUrl(url);
+    url = getDriveEmbedUrl(url, fullRes);
     
     const modalHtml = `
         <div id="photo-modal" class="modal-overlay fade-in" style="z-index: 10000; flex-direction: column; background: rgba(0,0,0,0.9);">
@@ -643,10 +650,10 @@ function renderPatientDetail() {
             `;
             if (h.foto_rs_1 || h.foto_rs_2 || h.foto_rs_3 || h.foto_rs_4) {
                 rsudSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">`;
-                if (h.foto_rs_1) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_1}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_1)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
-                if (h.foto_rs_2) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_2}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_2)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
-                if (h.foto_rs_3) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_3}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_3)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 3</div></div>`;
-                if (h.foto_rs_4) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_4}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_4)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 4</div></div>`;
+                if (h.foto_rs_1) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_1}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_1)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
+                if (h.foto_rs_2) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_2}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_2)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
+                if (h.foto_rs_3) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_3}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_3)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 3</div></div>`;
+                if (h.foto_rs_4) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_4}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_rs_4)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 4</div></div>`;
                 rsudSection += `</div>`;
             }
             if (h.nama_petugas_rs || h.kontak_petugas_rs) {
@@ -680,10 +687,10 @@ function renderPatientDetail() {
             `;
             if (h.foto_bidan_1 || h.foto_bidan_2 || h.foto_bidan_3 || h.foto_bidan_4) {
                 bidanSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">`;
-                if (h.foto_bidan_1) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_1}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_1)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
-                if (h.foto_bidan_2) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_2}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_2)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
-                if (h.foto_bidan_3) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_3}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_3)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 3</div></div>`;
-                if (h.foto_bidan_4) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_4}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_4)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 4</div></div>`;
+                if (h.foto_bidan_1) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_1}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_1)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
+                if (h.foto_bidan_2) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_2}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_2)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
+                if (h.foto_bidan_3) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_3}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_3)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 3</div></div>`;
+                if (h.foto_bidan_4) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_4}', true)" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${getDriveEmbedUrl(h.foto_bidan_4)}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 4</div></div>`;
                 bidanSection += `</div>`;
             }
             if (h.nama_bidan || h.kontak_bidan) {
@@ -799,7 +806,7 @@ function createUploadBox(fieldPrefix, disabled) {
                 ${!disabled ? `<div class="change-overlay" onclick="document.querySelector('#box-${fieldPrefix} .file-input').click()">Ganti</div>` : ''}
             </div>
         </div>
-        ${value && value.startsWith('http') ? `<div style="font-size: 0.75rem; text-align:center; margin-top: 4px;"><a href="${value}" target="_blank">Lihat Asli</a></div>` : ''}
+        ${value && value.startsWith('http') ? `<div style="font-size: 0.75rem; text-align:center; margin-top: 4px;"><button type="button" onclick="window.showPhotoModal('${value}', true)" style="background:none; border:none; color:var(--text-main); font-weight:600; text-decoration:underline; cursor:pointer;">Preview Full Resolusi</button></div>` : ''}
     `;
 }
 
