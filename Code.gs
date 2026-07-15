@@ -37,7 +37,8 @@ function setupHeader() {
     "Nama Faskes Rujukan", "Nama Petugas RS", "Kontak Petugas RS", "Nama Bidan Pemantau", "Kontak Bidan",
     "Pasien Dirujuk Ke Luar", "Lokasi Rujukan Lanjutan", "Status Akhir (Superadmin)",
     "Kabupaten Bidan PJ", "Kecamatan Bidan PJ", "Desa Bidan PJ", "Nama Bidan PJ", "Kontak Bidan PJ",
-    "Kabupaten Bidan Pemantau", "Kecamatan Bidan Pemantau", "Desa Bidan Pemantau"
+    "Kabupaten Bidan Pemantau", "Kecamatan Bidan Pemantau", "Desa Bidan Pemantau",
+    "Foto RS 3", "Foto RS 4", "Foto Bidan 3", "Foto Bidan 4"
   ];
   
   // Tulis header ke baris pertama (A1:AZ1)
@@ -83,7 +84,14 @@ function processPhoto(fotoData, fileName, fileType, patientNo) {
     const decodedData = Utilities.base64Decode(fotoData);
     const blob = Utilities.newBlob(decodedData, fileType, patientNo + "_" + fileName);
     const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    // Kadang Google Workspace memblokir public sharing, jika gagal biarkan saja (ambil URL-nya)
+    try {
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (shareErr) {
+      console.log("Warning: Gagal setSharing (mungkin dibatasi Domain/Workspace). URL tetap disimpan.");
+    }
+    
     return file.getUrl();
   } catch (e) {
     console.error("Gagal upload foto:", e);
@@ -140,8 +148,12 @@ function doPost(e) {
     // Proses Upload 4 Kemungkinan Foto
     const urlRs1 = processPhoto(data.foto_rs_1, data.foto_rs_1_name, data.foto_rs_1_type, data.no);
     const urlRs2 = processPhoto(data.foto_rs_2, data.foto_rs_2_name, data.foto_rs_2_type, data.no);
+    const urlRs3 = processPhoto(data.foto_rs_3, data.foto_rs_3_name, data.foto_rs_3_type, data.no);
+    const urlRs4 = processPhoto(data.foto_rs_4, data.foto_rs_4_name, data.foto_rs_4_type, data.no);
     const urlBidan1 = processPhoto(data.foto_bidan_1, data.foto_bidan_1_name, data.foto_bidan_1_type, data.no);
     const urlBidan2 = processPhoto(data.foto_bidan_2, data.foto_bidan_2_name, data.foto_bidan_2_type, data.no);
+    const urlBidan3 = processPhoto(data.foto_bidan_3, data.foto_bidan_3_name, data.foto_bidan_3_type, data.no);
+    const urlBidan4 = processPhoto(data.foto_bidan_4, data.foto_bidan_4_name, data.foto_bidan_4_type, data.no);
 
     // Susun Baris Data Sesuai Header
     const rowData = [
@@ -215,9 +227,13 @@ function doPost(e) {
       data.desa_bidan_pj || "", // BK
       data.nama_bidan_pj || "", // BL
       data.kontak_bidan_pj || "", // BM
-      data.kabupaten_bidan || "Pasuruan", // BN
-      data.kecamatan_bidan || "", // BO
-      data.desa_bidan || "" // BP
+      data.kabupaten_bidan || "Pasuruan", // BN: 65
+      data.kecamatan_bidan || "", // BO: 66
+      data.desa_bidan || "", // BP: 67
+      urlRs3, // BQ: 68
+      urlRs4, // BR: 69
+      urlBidan3, // BS: 70
+      urlBidan4 // BT: 71
     ];
 
     let isUpdate = false;
@@ -245,8 +261,12 @@ function doPost(e) {
       data: Object.assign(data, {
           foto_rs_1: urlRs1,
           foto_rs_2: urlRs2,
+          foto_rs_3: urlRs3,
+          foto_rs_4: urlRs4,
           foto_bidan_1: urlBidan1,
-          foto_bidan_2: urlBidan2
+          foto_bidan_2: urlBidan2,
+          foto_bidan_3: urlBidan3,
+          foto_bidan_4: urlBidan4
       })
     })).setMimeType(ContentService.MimeType.JSON);
 
@@ -355,6 +375,10 @@ function doGet(e) {
         foto_rs_2: values[i][49] || "",
         foto_bidan_1: values[i][50] || "",
         foto_bidan_2: values[i][51] || "",
+        foto_rs_3: values[i][68] || "",
+        foto_rs_4: values[i][69] || "",
+        foto_bidan_3: values[i][70] || "",
+        foto_bidan_4: values[i][71] || "",
         
         nama_faskes_rujukan: values[i][52] || "",
         nama_petugas_rs: values[i][53] || "",

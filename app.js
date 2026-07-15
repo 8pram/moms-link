@@ -34,8 +34,12 @@ const emptyForm = {
     kemampuan_menyusu: '', kemampuan_ibu_menyusui: '', pelaksanaan_pmk: '', tanda_kegawatan: '', tindakan_kegawatan: '', hasil: '', kontrol: '',
     foto_rs_1: '', foto_rs_1_name: '', foto_rs_1_type: '',
     foto_rs_2: '', foto_rs_2_name: '', foto_rs_2_type: '',
+    foto_rs_3: '', foto_rs_3_name: '', foto_rs_3_type: '',
+    foto_rs_4: '', foto_rs_4_name: '', foto_rs_4_type: '',
     foto_bidan_1: '', foto_bidan_1_name: '', foto_bidan_1_type: '',
     foto_bidan_2: '', foto_bidan_2_name: '', foto_bidan_2_type: '',
+    foto_bidan_3: '', foto_bidan_3_name: '', foto_bidan_3_type: '',
+    foto_bidan_4: '', foto_bidan_4_name: '', foto_bidan_4_type: '',
     nama_petugas_rs: '', kontak_petugas_rs: '', nama_bidan: '', kontak_bidan: '',
     is_dirujuk: false, lokasi_rujukan_lanjutan: '', status_akhir_superadmin: '',
     kabupaten_bidan_pj: 'Pasuruan', kecamatan_bidan_pj: '', desa_bidan_pj: '', nama_bidan_pj: '', kontak_bidan_pj: ''
@@ -623,10 +627,12 @@ function renderPatientDetail() {
                     <div style="grid-column: 1 / -1;"><strong>Tindakan Lainnya:</strong> PMK: ${h.pmk || '-'} | Minum: ${h.minum || '-'} | Imunisasi: ${h.imunisasi || '-'}</div>
                 </div>
             `;
-            if (h.foto_rs_1 || h.foto_rs_2) {
+            if (h.foto_rs_1 || h.foto_rs_2 || h.foto_rs_3 || h.foto_rs_4) {
                 rsudSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">`;
                 if (h.foto_rs_1) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_1}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_rs_1}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
                 if (h.foto_rs_2) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_2}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_rs_2}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
+                if (h.foto_rs_3) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_3}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_rs_3}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 3</div></div>`;
+                if (h.foto_rs_4) rsudSection += `<div onclick="window.showPhotoModal('${h.foto_rs_4}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_rs_4}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 4</div></div>`;
                 rsudSection += `</div>`;
             }
             if (h.nama_petugas_rs || h.kontak_petugas_rs) {
@@ -658,10 +664,12 @@ function renderPatientDetail() {
                     </div>
                 </div>
             `;
-            if (h.foto_bidan_1 || h.foto_bidan_2) {
+            if (h.foto_bidan_1 || h.foto_bidan_2 || h.foto_bidan_3 || h.foto_bidan_4) {
                 bidanSection += `<div style="display:flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">`;
                 if (h.foto_bidan_1) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_1}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_bidan_1}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 1</div></div>`;
                 if (h.foto_bidan_2) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_2}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_bidan_2}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 2</div></div>`;
+                if (h.foto_bidan_3) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_3}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_bidan_3}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 3</div></div>`;
+                if (h.foto_bidan_4) bidanSection += `<div onclick="window.showPhotoModal('${h.foto_bidan_4}')" style="cursor:pointer; border:1px solid var(--gray-border); border-radius:var(--radius-md); overflow:hidden; width:120px; box-shadow:var(--shadow-sm); background:white; transition:transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'"><img src="${h.foto_bidan_4}" style="width:100%; height:90px; object-fit:cover; display:block;"><div style="font-size:0.7rem; text-align:center; padding:6px; color:var(--text-secondary); font-weight:600; background:var(--gray-light); border-top:1px solid var(--gray-border);">Foto 4</div></div>`;
                 bidanSection += `</div>`;
             }
             if (h.nama_bidan || h.kontak_bidan) {
@@ -945,9 +953,11 @@ function renderForm() {
 
                             <div class="col-span-full border-top">
                                 <label class="form-label mb-2 block">📷 Dokumentasi RSUD (Opsional)</label>
-                                <div class="upload-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-top: 1rem;">
                                     ${createUploadBox('foto_rs_1', lockTahap4)}
                                     ${createUploadBox('foto_rs_2', lockTahap4)}
+                                    ${createUploadBox('foto_rs_3', lockTahap4)}
+                                    ${createUploadBox('foto_rs_4', lockTahap4)}
                                 </div>
                             </div>
                             
@@ -984,9 +994,11 @@ function renderForm() {
                             
                             <div class="col-span-full border-top">
                                 <label class="form-label mb-2 block">📷 Dokumentasi Bidan (Opsional)</label>
-                                <div class="upload-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
                                     ${createUploadBox('foto_bidan_1', lockTahap5)}
                                     ${createUploadBox('foto_bidan_2', lockTahap5)}
+                                    ${createUploadBox('foto_bidan_3', lockTahap5)}
+                                    ${createUploadBox('foto_bidan_4', lockTahap5)}
                                 </div>
                             </div>
 
